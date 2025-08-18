@@ -1,1 +1,2 @@
-console.log("Hello there");
+import { WebSocketServer } from "ws";
+
