@@ -1,9 +1,10 @@
 import { JwtPayload } from "jsonwebtoken"; // if you're using JWT
+import { userDetails } from "../middleware/middleware";
 
 declare global {
     namespace Express {
         interface Request {
-        user?: string | JwtPayload; // change type as needed
+        user?: userDetails | JwtPayload; // change type as needed
         }
     }
 }
