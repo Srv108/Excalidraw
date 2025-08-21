@@ -28,13 +28,10 @@ function checkUser (token: string): string | null {
     } catch (error) {
         return null;
     }
-
-    return null;
 }
 
 wss.on('connection', function(ws, request) {
     const url = request.url;
-    console.log(ws);
 
     if(!url) return;
 
@@ -51,6 +48,8 @@ wss.on('connection', function(ws, request) {
         return null;
     }
 
+    console.log('new client gets connected',userId);
+
     /* two condition comes here if you want to allow duplicates users from multiple tabs or session 
     
         1.  allow single session
@@ -59,14 +58,14 @@ wss.on('connection', function(ws, request) {
 
     /* for single session */
 
-    // const duplicateUser = users.find(user => user.userId === userId);
+    /* const duplicateUser = users.find(user => user.userId === userId);
 
-    // if(duplicateUser){
+    if(duplicateUser){
 
-    //     /* first close previous running session */
-    //     duplicateUser.ws.close();
-    //     users.splice(users.indexOf(duplicateUser), 1);
-    // }
+        // first close previous running session
+        duplicateUser.ws.close();
+        users.splice(users.indexOf(duplicateUser), 1);
+    } */
     
 
     /* push the current user to active user array */
@@ -75,6 +74,12 @@ wss.on('connection', function(ws, request) {
         rooms: [],
         userId
     })
+
+    /* send message of connection got established to the users */
+    ws.send(JSON.stringify({
+        type: "connection",
+        message: "User connected to socket"
+    }))
 
     ws.on('message', async function (data) {
         let parsedData;
@@ -105,7 +110,7 @@ wss.on('connection', function(ws, request) {
                 }
                 
                 /* check user is actually part of this room or not */
-                const validUser = await client.room.findFirst({
+                const validUser = await client.room.findUnique({
                     where: {
                         id: roomId
                     },include: {
@@ -118,7 +123,7 @@ wss.on('connection', function(ws, request) {
 
                 })
 
-                if(!validUser) {
+                if(!validUser || validUser.memberships.length === 0) {
                     ws.send(JSON.stringify({
                         message: "you are not the member of this room"
                     }));
@@ -137,6 +142,9 @@ wss.on('connection', function(ws, request) {
 
                     if(!user.rooms.includes(parsedData.roomId)) {
                         user.rooms.push(parsedData.roomId);
+                        ws.send(JSON.stringify({
+                            message: `${userId} connected to room ${roomId}`
+                        }))
                     }
                 }
 
@@ -157,6 +165,10 @@ wss.on('connection', function(ws, request) {
             if(!user) return;
 
             user.rooms = user.rooms.filter((roomId) => roomId !== parsedData.roomId);
+
+            ws.send(JSON.stringify({
+                message: `${userId} left the room ${parsedData.roomId}`
+            }))
         }
 
 
@@ -176,7 +188,6 @@ wss.on('connection', function(ws, request) {
 
             } catch (error) {
                 /* failed to push message to db */
-                console.log(error);
                 ws.send(JSON.stringify({
                     type: "error",
                     message: "Failed to send message"
@@ -185,7 +196,7 @@ wss.on('connection', function(ws, request) {
 
             /* broadcast this message to all user who joined this room */
 
-            users.forEach((user) => {
+            users.forEach(user => {
                 if(user.rooms.includes(roomId)){
                     user.ws.send(JSON.stringify({
                         type: "chat",
@@ -202,5 +213,6 @@ wss.on('connection', function(ws, request) {
     ws.on('close', () => {
         const index = users.findIndex(u => u.ws === ws);
         if (index !== -1) users.splice(index, 1);
+        console.log('user disconnected', userId);
     })
 })
