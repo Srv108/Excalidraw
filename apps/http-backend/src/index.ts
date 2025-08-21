@@ -9,7 +9,6 @@ import { JWT_SECRET } from "@repo/backend-common/config"
 import { isAuthenticated } from "./middleware/middleware";
 import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
-import { isUserPartOfRoom } from "./utils/roomQuery";
 
 
 const app = express();
