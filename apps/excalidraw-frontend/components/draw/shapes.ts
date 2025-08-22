@@ -1,3 +1,10 @@
+type DrawingState = {
+    strokeColor?: string;
+    strokeWidth?: number;
+    strokeStyle?: CanvasLineCap;
+    fillColor?: string;
+    opacity?: number;
+};
 
 abstract class Shape {
     protected startX: number;
@@ -13,9 +20,9 @@ abstract class Shape {
     constructor (x: number, y: number){
         this.startX = x;
         this.startY = y;
-        this.strokeColor = "" /* black */
+        this.strokeColor = "#000000" /* black */
         this.strokeStyle = 'round';
-        this.opacity = 2;
+        this.opacity = 1;
         this.isSelected = false;
         this.strokeWidth = 2;
         this.fillColour = 'transparent';
@@ -54,6 +61,26 @@ abstract class Shape {
     toMove(x: number, y: number): void{
         this.startX = x;
         this.startY = y
+    }
+
+    /* get the current state of shapes */
+    getState (): DrawingState{
+        return {
+            strokeColor: this.strokeColor,
+            strokeStyle: this.strokeStyle,
+            strokeWidth: this.strokeWidth,
+            opacity: this.opacity,
+            fillColor: this.fillColour
+        }
+    }
+
+    /* set the states of the drawing */
+    setState (state: DrawingState) : void{
+        this.strokeColor = state.strokeColor ?? "#000000";
+        this.strokeStyle = state.strokeStyle ?? "round";
+        this.strokeWidth = state.strokeWidth ?? 2;
+        this.opacity = state.opacity ?? 1;
+        this.fillColour = state.fillColor ?? "transparent";
     }
 }
 
@@ -97,6 +124,8 @@ export class Rectangle extends Shape {
 
 export class Circle extends Shape {
     private radius: number;
+    private centerX: number;
+    private centerY: number;
     // private startAngle: number;
     // private endAngle: number;
     private clockwise: boolean;
@@ -104,8 +133,13 @@ export class Circle extends Shape {
     constructor (x: number, y: number, width: number, height: number) {
         super(x, y);
 
+        const radius = Math.min(Math.abs(width), Math.abs(height)) / 2;
+
+        this.centerX = x + radius;
+        this.centerY = y + radius;
+        
+
         /* logic to calculate radius */
-        const radius = Math.max(width, height) / 2;
 
         this.radius = radius;
         // this.startAngle = 0;
@@ -124,22 +158,23 @@ export class Circle extends Shape {
         ctx.globalAlpha = this.opacity;
 
         /* draw circle with given radius */
-        ctx.arc(this.startX, this.startY, this.radius, 0, Math.PI * 2);
+        ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
     }
 
     isPointInside(x: number, y: number): boolean {
-        const centerX = x + this.radius;
-        const centerY = y + this.radius;
 
         /* now calculate the distance btw point and radius of the circle */
-        const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+        const distance = Math.sqrt(Math.pow(x - this.centerX, 2) + Math.pow(y - this.centerY, 2));
 
         return distance <= this.radius;
     }
 
-    setRadius (r: number): void {
-        this.radius = r;
+    setSize(width: number, height: number): void {
+        this.radius = Math.min(Math.abs(width), Math.abs(height)) / 2;
+        this.centerX = this.startX + this.radius;
+        this.centerY = this.startY + this.radius;
     }
+
 }

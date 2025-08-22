@@ -22,10 +22,10 @@ export class Draw {
     
     socket: WebSocket;
 
-    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], socket: WebSocket, roomId: string) {
+    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], socket: WebSocket, roomId?: string) {
         this.selectedShape = selectedShape;
         this.ExistingData = previousData;
-        this.roomId = roomId;
+        this.roomId = roomId ?? "";
         this.socket = socket;
 
         if(!canvas) {
@@ -53,7 +53,7 @@ export class Draw {
         this.initMouseHandler();    /* initialise mouse events */
     }
 
-    initMouseHandler () {
+    initMouseHandler (): void {
         this.canvas.addEventListener("mousedown", this.mouseDownHandler);
         this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
         this.canvas.addEventListener("mouseup", this.mouseUpHandler);
@@ -96,11 +96,35 @@ export class Draw {
         if(this.clicked){
             const width = e.clientX - this.startX;
             const height = e.clientY - this.startY;
+
+            this.clearCanvas();
+
+            /* select the current shape constructor */
+            const ShapeClass = ShapeRegistry[this.selectedShape];
+            if(!ShapeClass) return;
+
+            /* create an instance of the current shape */
+            const previewShape = new ShapeClass(this.startX, this.startY, width, height);
+            previewShape.draw(this.ctx);    /* draw the shapes of the instances */
+
+            /* send the live drawing to the socket also 
+                todos ( send live drawing state to socket)
+            */
         }
     }
 
+    clearCanvas (): void {
+        /* clear the canvas */
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    destroyMouseHandler () {
+        /* now draw the existing shapes */
+        this.ExistingData.forEach(shape => {
+            shape.draw(this.ctx);
+        });
+
+    }
+
+    destroyMouseHandler (): void {
         this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
         this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
         this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
