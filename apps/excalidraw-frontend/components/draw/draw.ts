@@ -1,141 +1,109 @@
+import { Circle, Rectangle } from "./shapes";
 
-abstract class Shape {
-    protected startX: number;
-    protected startY: number;
-    protected strokeColor: string;
-    protected strokeStyle: CanvasLineCap;
-    protected strokeWidth: number;
-    protected opacity: number;
-    protected isSelected: boolean;
-    protected fillColour: string;
+type AnyShape =  Rectangle | Circle;
 
+type ShapeConstructor = new (x: number, y: number, width: number, height: number) => AnyShape;
 
-    constructor (x: number, y: number){
-        this.startX = x;
-        this.startY = y;
-        this.strokeColor = "" /* black */
-        this.strokeStyle = 'round';
-        this.opacity = 2;
-        this.isSelected = false;
-        this.strokeWidth = 2;
-        this.fillColour = 'transparent';
-    }
-
-    /* draw method is to implement by their subclasses */
-    abstract draw (ctx: CanvasRenderingContext2D): void;
-
-    /* common method for all shapes */
-    setStrokeColor(color: string): void{
-        this.strokeColor = color;
-    }
-
-    setStrokeWidth(width: number): void{
-        this.strokeWidth = width;
-    }
-
-    setOpacity(x: number): void{
-        this.opacity = x;
-    }
-
-    setShapeColor(color: string): void{
-        this.fillColour = color;
-    }
-
-    setIsShapeSelected(confirm: boolean): void{
-        this.isSelected = confirm;
-    }
-
-    /* method to check is cursor inside the shape implemented by their subclasses*/
-    isPointInside(x: number, y: number): boolean{
-        return false;
-    }
-
-    /* to move the shape */
-    toMove(x: number, y: number): void{
-        this.startX = x;
-        this.startY = y
-    }
+/* map shape constructor */
+const ShapeRegistry: Record< string, ShapeConstructor> = {
+    rect: Rectangle,
+    circle: Circle,
 }
 
+export class Draw {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private ExistingData: AnyShape[];
+    private roomId: string;
+    private clicked: boolean;
+    private selectedShape: string;
+    private startX: number = 0;
+    private startY: number = 0;
+    
+    socket: WebSocket;
 
-export class Rectangle extends Shape {
-    private width: number;
-    private height: number;
+    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], socket: WebSocket, roomId: string) {
+        this.selectedShape = selectedShape;
+        this.ExistingData = previousData;
+        this.roomId = roomId;
+        this.socket = socket;
 
-    constructor(x: number, y: number, width: number, height: number){
-        super(x, y);
-        this.width = width;
-        this.height = height;
-    }
+        if(!canvas) {
+            throw new Error("canvas element is required") ;
+        }
 
-    draw(ctx: CanvasRenderingContext2D): void{
-        ctx.save();
-        ctx.beginPath();
+        this.canvas = canvas;
 
-        ctx.strokeStyle = this.strokeColor;
-        ctx.lineWidth = this.strokeWidth;
-        ctx.lineCap = this.strokeStyle;
-        ctx.fillStyle = this.fillColour;
-        ctx.globalAlpha = this.opacity;
+        const context = this.canvas.getContext("2d");
+        if(!context) {
+            throw new Error ("could not get 2D context from canvas");
+        }
+
+        this.ctx = context;
+
+        const dpr = window.devicePixelRatio || 1;   /* device pixel ratio */
+
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
         
-        /*  */
-        ctx.rect(this.startX, this.startY, this.width, this.height);
-        ctx.fill();
-        ctx.stroke();
-    }
-    
-    isPointInside(x: number, y: number): boolean{
-        return ((x >= this.startX) && (x <= this.startX + this.width)) 
-            && ((y >= this.startY) && y <= this.startY + this.height)
+        this.ctx.scale(dpr, dpr);
+        this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        this.clicked = false;
+        this.initMouseHandler();    /* initialise mouse events */
     }
 
-    setSize (width: number, height: number): void{
-        this.width = width;
-        this.height = height;
-    }
-}
-
-export class Circle extends Shape {
-    private radius: number;
-    // private startAngle: number;
-    // private endAngle: number;
-    private clockwise: boolean;
-    
-    constructor (x: number, y: number, radius: number) {
-        super(x, y);
-        this.radius = radius;
-        // this.startAngle = 0;
-        // this.endAngle = 0;
-        this.clockwise = true;
+    initMouseHandler () {
+        this.canvas.addEventListener("mousedown", this.mouseDownHandler);
+        this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
+        this.canvas.addEventListener("mouseup", this.mouseUpHandler);
     }
 
-    draw (ctx: CanvasRenderingContext2D): void {
-        ctx.save();
-        ctx.beginPath();
-
-        ctx.strokeStyle = this.strokeColor;
-        ctx.lineWidth = this.strokeWidth;
-        ctx.lineCap = this.strokeStyle;
-        ctx.fillStyle = this.fillColour;
-        ctx.globalAlpha = this.opacity;
-
-        /* draw circle with given radius */
-        ctx.arc(this.startX, this.startY, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+    mouseDownHandler = (e: MouseEvent) => {
+        this.clicked = true;
+        this.startX = e.clientX;
+        this.startY = e.clientY;
     }
 
-    isPointInside(x: number, y: number): boolean {
-        const centerX = x + this.radius;
-        const centerY = y + this.radius;
+    mouseUpHandler = (e: MouseEvent) => {
+        this.clicked = false;
 
-        /* now calculate the distance btw point and radius of the circle */
-        const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+        /* height and width of the shape */
+        const width = e.clientX - this.startX;
+        const height = e.clientY - this.startY;
 
-        return distance <= this.radius;
+        /* initialise the object of the selected shape */
+        const ShapeClass = ShapeRegistry[this.selectedShape];
+        
+        if(!ShapeClass){
+            console.warn(`Shape "${this.selectedShape}" is not registered`);
+            return;
+        }
+
+        const shape = new ShapeClass(this.startX, this.startY, width, height);
+
+        /* call the draw method of that object */
+        shape.draw(this.ctx);
+        this.ExistingData.push(shape);
+
+        /* 
+            send shape data to the socket 
+        */
+
     }
 
-    setRadius (r: number): void {
-        this.radius = r;
+    mouseMoveHandler = (e: MouseEvent) => {
+        if(this.clicked){
+            const width = e.clientX - this.startX;
+            const height = e.clientY - this.startY;
+        }
     }
+
+
+    destroyMouseHandler () {
+        this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
+        this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
+        this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
+    }
+
 }

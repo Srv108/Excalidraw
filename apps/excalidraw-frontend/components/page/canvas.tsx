@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Navbar from "./Navbar"
-import { Rectangle, Circle } from "../draw/draw";
+import { Rectangle, Circle } from "../draw/shapes";
 
 
 export default function Canvas () {
@@ -22,17 +22,14 @@ export default function Canvas () {
         canvas.height = window.innerHeight * dpr;
         
         ctx.scale(dpr, dpr);
-        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        const shape = new Circle(250, 250, 150);
+        const shape = new Circle(250, 250, 150, 300);
         shape.setStrokeColor("#000");
         
         shape.draw(ctx);
 
         /* draw circle */
-
-        
 
     }, []);
 

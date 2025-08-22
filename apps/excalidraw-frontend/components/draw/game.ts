@@ -1,4 +1,12 @@
 // Abstract base class for all shapes
+type DrawingState = {
+    strokeColor: string;
+    strokeWidth: number;
+    strokeStyle: CanvasLineCap;
+    fillColor: string;
+    opacity: number;
+};
+
 abstract class Shape {
     protected startX: number;
     protected startY: number;
@@ -9,15 +17,15 @@ abstract class Shape {
     protected isSelected: boolean;
     protected fillColor: string;
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, DrawingState?: Partial<DrawingState> ) {
         this.startX = x;
         this.startY = y;
-        this.strokeColor = '#000000';
-        this.strokeStyle = 'round';
-        this.strokeWidth = 2;
-        this.opacity = 1;
+        this.strokeColor = DrawingState?.strokeColor ?? '#000000';
+        this.strokeStyle = DrawingState?.strokeStyle ?? 'round';
+        this.strokeWidth = DrawingState?.strokeWidth ?? 2;
+        this.opacity = DrawingState?.opacity ?? 1;
+        this.fillColor =  DrawingState?.fillColor ?? 'transparent';
         this.isSelected = false;
-        this.fillColor = 'transparent';
     }
 
     // Abstract method to be implemented by subclasses
@@ -53,6 +61,16 @@ abstract class Shape {
     moveTo(x: number, y: number): void {
         this.startX = x;
         this.startY = y;
+    }
+
+    getState (): DrawingState{
+        return {
+            strokeColor: this.strokeColor,
+            strokeStyle: this.strokeStyle,
+            strokeWidth: this.strokeWidth,
+            opacity: this.opacity,
+            fillColor: this.fillColor
+        }
     }
 }
 
