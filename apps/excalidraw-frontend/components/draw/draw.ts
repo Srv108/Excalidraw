@@ -79,6 +79,9 @@ export class Rectangle extends Shape {
         ctx.globalAlpha = this.opacity;
         
         /*  */
+        ctx.rect(this.startX, this.startY, this.width, this.height);
+        ctx.fill();
+        ctx.stroke();
     }
     
     isPointInside(x: number, y: number): boolean{
@@ -89,5 +92,50 @@ export class Rectangle extends Shape {
     setSize (width: number, height: number): void{
         this.width = width;
         this.height = height;
+    }
+}
+
+export class Circle extends Shape {
+    private radius: number;
+    // private startAngle: number;
+    // private endAngle: number;
+    private clockwise: boolean;
+    
+    constructor (x: number, y: number, radius: number) {
+        super(x, y);
+        this.radius = radius;
+        // this.startAngle = 0;
+        // this.endAngle = 0;
+        this.clockwise = true;
+    }
+
+    draw (ctx: CanvasRenderingContext2D): void {
+        ctx.save();
+        ctx.beginPath();
+
+        ctx.strokeStyle = this.strokeColor;
+        ctx.lineWidth = this.strokeWidth;
+        ctx.lineCap = this.strokeStyle;
+        ctx.fillStyle = this.fillColour;
+        ctx.globalAlpha = this.opacity;
+
+        /* draw circle with given radius */
+        ctx.arc(this.startX, this.startY, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    isPointInside(x: number, y: number): boolean {
+        const centerX = x + this.radius;
+        const centerY = y + this.radius;
+
+        /* now calculate the distance btw point and radius of the circle */
+        const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+
+        return distance <= this.radius;
+    }
+
+    setRadius (r: number): void {
+        this.radius = r;
     }
 }

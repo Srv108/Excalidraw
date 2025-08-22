@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react"
 import Navbar from "./Navbar"
+import { Rectangle, Circle } from "../draw/draw";
 
 
 export default function Canvas () {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -23,7 +25,14 @@ export default function Canvas () {
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        const shape = new Circle(250, 250, 150);
+        shape.setStrokeColor("#000");
+        
+        shape.draw(ctx);
 
+        /* draw circle */
+
+        
 
     }, []);
 
