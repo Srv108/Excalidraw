@@ -20,13 +20,13 @@ export class Draw {
     private startX: number = 0;
     private startY: number = 0;
     
-    socket: WebSocket;
+    // socket: WebSocket;
 
-    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], socket: WebSocket, roomId?: string) {
+    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], /* socket: WebSocket, */ roomId?: string) {
         this.selectedShape = selectedShape;
         this.ExistingData = previousData;
         this.roomId = roomId ?? "";
-        this.socket = socket;
+        // this.socket = socket;
 
         if(!canvas) {
             throw new Error("canvas element is required") ;

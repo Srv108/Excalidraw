@@ -3,35 +3,42 @@
 import { useEffect, useRef, useState } from "react"
 import Navbar from "./Navbar"
 import { Rectangle, Circle } from "../draw/shapes";
+import { Draw } from "../draw/draw";
 
 
 export default function Canvas () {
 
+    const [ selectedShape, setSelectedShape ] = useState<"rect" | "circle">('rect');
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const drawRef = useRef<Draw | null>(null);
+    // const socketRef = useRef<WebSocket | null>(null);
+
+
 
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if(!ctx) return;
-
-        const dpr = window.devicePixelRatio || 1;   /* device pixel ratio */
-
-        canvas.width = window.innerWidth * dpr;
-        canvas.height = window.innerHeight * dpr;
         
-        ctx.scale(dpr, dpr);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        const shape = new Circle(250, 250, 150, 300);
-        shape.setStrokeColor("#000");
-        
-        shape.draw(ctx);
+        /* create draw instance */
+        const draw = new Draw(
+            canvas,
+            selectedShape,
+            [],
+            // socketRef.current,
+            "room1"
+        )
 
-        /* draw circle */
+        drawRef.current = draw;
 
-    }, []);
+        // Cleanup on unmount
+        return () => {
+            draw.destroyMouseHandler();
+            // socket.close();
+        }
+
+    }, [ selectedShape ]);
 
     return <>
         <div>

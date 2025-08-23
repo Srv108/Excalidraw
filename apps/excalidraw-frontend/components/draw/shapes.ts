@@ -135,8 +135,8 @@ export class Circle extends Shape {
 
         const radius = Math.min(Math.abs(width), Math.abs(height)) / 2;
 
-        this.centerX = x + radius;
-        this.centerY = y + radius;
+        this.centerX = x + width / 2;
+        this.centerY = y + height / 2;
         
 
         /* logic to calculate radius */
@@ -145,6 +145,11 @@ export class Circle extends Shape {
         // this.startAngle = 0;
         // this.endAngle = 0;
         this.clockwise = true;
+    }
+
+    /* check the cursor and starting point are on same line */
+    isCursorAndStartingPointOnSameLine(width: number, height: number): void{
+
     }
 
     draw (ctx: CanvasRenderingContext2D): void {
@@ -173,8 +178,9 @@ export class Circle extends Shape {
 
     setSize(width: number, height: number): void {
         this.radius = Math.min(Math.abs(width), Math.abs(height)) / 2;
-        this.centerX = this.startX + this.radius;
-        this.centerY = this.startY + this.radius;
+
+        this.centerX = this.startX + width / 2;
+        this.centerY = this.startY + height / 2;
     }
 
 }
