@@ -24,6 +24,8 @@ export default function RoomCanvas({ roomId }: { roomId: number }) {
         }
     };
 
+
+
     useEffect(() => {
         let isMounted = true;
 
@@ -42,10 +44,10 @@ export default function RoomCanvas({ roomId }: { roomId: number }) {
                     setIsLoading(false);
                 };
 
-                /* update the message */
-                ws.onmessage = (msg) => {
-                    console.log("Message received:", msg.data);
-                };
+                // /* update the message */
+                // ws.onmessage = (msg) => {
+                //     console.log("Message received:", msg.data);
+                // };
 
                 ws.onclose = (e) => {
                     console.log(`WebSocket closed - code: ${e.code}, reason: ${e.reason || "No reason"}`);

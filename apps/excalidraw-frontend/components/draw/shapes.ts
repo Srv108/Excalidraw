@@ -128,12 +128,17 @@ export class Circle extends Shape {
     private centerY: number;
     private endX: number;
     private endY: number;
+    private width: number;
+    private height: number;
     // private startAngle: number;
     // private endAngle: number;
     private clockwise: boolean;
     
     constructor (x: number, y: number, width: number, height: number) {
         super(x, y);
+
+        this.width = width;
+        this.height = height;
 
         this.endX = width + x;
         this.endY = height + y;
