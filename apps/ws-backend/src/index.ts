@@ -1,10 +1,17 @@
+import fs from "fs";
+import path from "path";
+import https from "https";
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { client } from "@repo/db/client"
 
+const server = https.createServer({
+    key: fs.readFileSync(path.join(__dirname, "../../../certs/key.pem")),
+    cert: fs.readFileSync(path.join(__dirname, "../../../certs/cert.pem"))
+});
 
-const wss = new WebSocketServer({port: 8080});
+const wss = new WebSocketServer({ server });
 interface User {
     ws: WebSocket,
     rooms: String[],
@@ -44,6 +51,7 @@ wss.on('connection', function(ws, request) {
 
     /* if user is not authenticated close the websocket sever */
     if(!userId) {
+        console.log('you are not authenticated');
         ws.close();
         return null;
     }
@@ -178,7 +186,8 @@ wss.on('connection', function(ws, request) {
 
             try {
                 /* push this message to db */
-                await client.chat.create({
+
+                const response = await client.chat.create({
                     data: {
                         roomId,
                         userId,
@@ -190,12 +199,12 @@ wss.on('connection', function(ws, request) {
                 /* failed to push message to db */
                 ws.send(JSON.stringify({
                     type: "error",
-                    message: "Failed to send message"
+                    message: "Failed to send message",
+                    error
                 }));
             }
 
             /* broadcast this message to all user who joined this room */
-
             users.forEach(user => {
                 if(user.rooms.includes(roomId)){
                     user.ws.send(JSON.stringify({
@@ -210,9 +219,11 @@ wss.on('connection', function(ws, request) {
 
     })
 
-    ws.on('close', () => {
+    ws.on('close', (code, reason) => {
         const index = users.findIndex(u => u.ws === ws);
         if (index !== -1) users.splice(index, 1);
-        console.log('user disconnected', userId);
+        console.log(`user get disconnected ${userId} code=${code} reason is ${reason}`);
     })
 })
+
+server.listen(8080, () => console.log("WSS running on https://localhost:8080"));

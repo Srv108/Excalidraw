@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@repo/ui/components/ui/button"; 
+import { Button } from "@repo/ui/components/button";
 import { motion } from "framer-motion";
 
 export default function NotFound() {

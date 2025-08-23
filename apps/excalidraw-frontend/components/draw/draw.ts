@@ -14,19 +14,19 @@ export class Draw {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private ExistingData: AnyShape[];
-    private roomId: string;
+    private roomId: number;
     private clicked: boolean;
     private selectedShape: string;
     private startX: number = 0;
     private startY: number = 0;
     
-    // socket: WebSocket;
+    socket: WebSocket;
 
-    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], /* socket: WebSocket, */ roomId?: string) {
+    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: AnyShape[], socket: WebSocket, roomId: number) {
         this.selectedShape = selectedShape;
         this.ExistingData = previousData;
-        this.roomId = roomId ?? "";
-        // this.socket = socket;
+        this.roomId = roomId ?? null;
+        this.socket = socket;
 
         if(!canvas) {
             throw new Error("canvas element is required") ;
@@ -89,6 +89,14 @@ export class Draw {
         /* 
             send shape data to the socket 
         */
+        console.log("shapes data", JSON.stringify({shape}));
+        this.socket.send(JSON.stringify({
+            type: 'chat',
+            message: JSON.stringify({
+                shape
+            }),
+            roomId: this.roomId
+        }))
 
     }
 

@@ -1,20 +1,18 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import Navbar from "./Navbar"
-import { Rectangle, Circle } from "../draw/shapes";
 import { Draw } from "../draw/draw";
 
 
-export default function Canvas () {
+export default function Canvas ({roomId, socket}: {
+    roomId: number,
+    socket: WebSocket
+}) {
 
-    const [ selectedShape, setSelectedShape ] = useState<"rect" | "circle">('circle');
+    const [ selectedShape, setSelectedShape ] = useState<"rect" | "circle">('rect');
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const drawRef = useRef<Draw | null>(null);
-    // const socketRef = useRef<WebSocket | null>(null);
-
-
 
 
     useEffect(() => {
@@ -26,16 +24,16 @@ export default function Canvas () {
             canvas,
             selectedShape,
             [],
-            // socketRef.current,
-            "room1"
+            socket,
+            roomId
         )
-
+        
         drawRef.current = draw;
 
         // Cleanup on unmount
         return () => {
             draw.destroyMouseHandler();
-            // socket.close();
+            socket.close();
         }
 
     }, [ selectedShape ]);

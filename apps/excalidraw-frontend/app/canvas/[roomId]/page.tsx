@@ -1,5 +1,5 @@
-import Canvas from "@/components/page/canvas";
 import Navbar from "@/components/page/Navbar";
+import RoomCanvas from "@/components/page/RoomCanvas";
 
 export default async function  Room({ params }: {
     params: {
@@ -20,7 +20,7 @@ export default async function  Room({ params }: {
 
                 {/* Canvas takes full screen */}
                 <div className="w-full h-full">
-                    <Canvas />
+                    <RoomCanvas roomId={parseInt(roomId)} />
                 </div>
             </div>
         </>
