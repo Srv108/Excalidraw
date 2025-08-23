@@ -126,6 +126,8 @@ export class Circle extends Shape {
     private radius: number;
     private centerX: number;
     private centerY: number;
+    private endX: number;
+    private endY: number;
     // private startAngle: number;
     // private endAngle: number;
     private clockwise: boolean;
@@ -133,23 +135,39 @@ export class Circle extends Shape {
     constructor (x: number, y: number, width: number, height: number) {
         super(x, y);
 
-        const radius = Math.min(Math.abs(width), Math.abs(height)) / 2;
+        this.endX = width + x;
+        this.endY = height + y;
 
-        this.centerX = x + width / 2;
-        this.centerY = y + height / 2;
-        
+        /* center of the diameter 
+            ->          (x1 + x2) / 2, (y1 + y2) / 2
+            centerX = (this.endX + x) / 2            -> width + x + x = width + 2x
+            centerY = (this.endY + y) / 2            -> height + y + y = height + 2y
+        */
+        this.centerX = (2*x + width) / 2;
+        this.centerY = (2*y + height) / 2;
 
-        /* logic to calculate radius */
+        /* redius will be the mid point of the diameter */
 
-        this.radius = radius;
-        // this.startAngle = 0;
-        // this.endAngle = 0;
+        /* 
+            dx = this.endX - x          -> width + x - x = width
+            dy = this.endY - y          -> height + y - y = height
+        */
+        const distance = Math.sqrt(width*width + height*height);    /* length of the diameter */
+        this.radius = distance / 2;
+
+        /* calculate startAngle and endAngle
+            this.startAngle = 0;
+            this.endAngle = 0;
+        */
         this.clockwise = true;
-    }
 
-    /* check the cursor and starting point are on same line */
-    isCursorAndStartingPointOnSameLine(width: number, height: number): void{
+        /* set slope of the circle
 
+            const dy = (height + y - y);
+            const dx = (width + x - x);
+
+            const m = dy/dx;
+        */
     }
 
     draw (ctx: CanvasRenderingContext2D): void {
@@ -176,11 +194,11 @@ export class Circle extends Shape {
         return distance <= this.radius;
     }
 
-    setSize(width: number, height: number): void {
-        this.radius = Math.min(Math.abs(width), Math.abs(height)) / 2;
+    setRadius(width: number, height: number): void {
+        this.radius = Math.sqrt(width*width + height*height) / 2;
 
-        this.centerX = this.startX + width / 2;
-        this.centerY = this.startY + height / 2;
+        this.centerX = (2*this.startX + width) / 2;
+        this.centerY = (2*this.startY + height) / 2;
     }
 
 }

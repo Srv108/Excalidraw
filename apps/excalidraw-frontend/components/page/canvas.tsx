@@ -8,7 +8,7 @@ import { Draw } from "../draw/draw";
 
 export default function Canvas () {
 
-    const [ selectedShape, setSelectedShape ] = useState<"rect" | "circle">('rect');
+    const [ selectedShape, setSelectedShape ] = useState<"rect" | "circle">('circle');
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const drawRef = useRef<Draw | null>(null);
