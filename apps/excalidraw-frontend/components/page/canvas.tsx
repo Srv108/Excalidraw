@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react"
 import { AnyShape, Draw } from "../draw/draw";
-import { Arrow, Circle, Diamond, Line, Rectangle } from "../draw/shapes";
+import { Arrow, Circle, Diamond, Line, Rectangle, Text } from "../draw/shapes";
 import { ActiveShape } from "./RoomCanvas";
 
-type ShapeConstructor = new (x: number, y: number, width: number, height: number) => AnyShape;
+export type ShapeConstructor = 
+            | (new (x: number, y: number, width: number, height: number, fillColor: string) => AnyShape) 
+            | (new (x: number, y: number, text: string, fontSize: number) => Text)
 
 /* map shape constructor */
 const ShapeRegistry: Record< string, ShapeConstructor> = {
@@ -13,7 +15,8 @@ const ShapeRegistry: Record< string, ShapeConstructor> = {
     circle: Circle,
     line: Line,
     diamond: Diamond,
-    arrow: Arrow
+    arrow: Arrow,
+    text: Text
 }
 
 export default function Canvas({
@@ -29,7 +32,7 @@ export default function Canvas({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const drawRef = useRef<Draw | null>(null);
     const [existingShapes, setExistingShapes] = useState<
-        { type: string; shape: AnyShape }[]
+        { type: string; shape: AnyShape | Text }[]
     >([]);
 
     useEffect(() => {
@@ -73,8 +76,21 @@ export default function Canvas({
             const startY = shape.startY ?? 0;
             const width = shape.width ?? 0;
             const height = shape.height ?? 0;
+            const text = shape?.text ?? "Hey Saurav";
+            const fontSize = shape?.fontSize ?? 30;
+            const fillColor = shape?.fillColor ?? "red";
 
-            const reconstructedShape = new ShapeClass(startX, startY, width, height);
+            let reconstructedShape;
+
+            if(type === 'text'){
+                console.log(shape);
+                const TextClass = ShapeClass as new (x: number, y: number, text: string, fontSize: number, fillColor: string) => Text;
+                reconstructedShape = new TextClass(startX, startY, text, fontSize, fillColor);
+            } else {
+                const GenericClass =  ShapeClass as new (x: number, y: number, width: number, height: number) => AnyShape;
+                reconstructedShape = new GenericClass(startX, startY, width, height);
+            }
+
             const newShape = { type, shape: reconstructedShape };
             setExistingShapes((prev) => [...prev, newShape]);
 

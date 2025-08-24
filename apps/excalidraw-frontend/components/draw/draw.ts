@@ -1,9 +1,11 @@
 import { getExistingData } from "./data";
-import { Arrow, Circle, Diamond, Line, Rectangle } from "./shapes";
+import { Arrow, Circle, Diamond, Line, Rectangle, Text } from "./shapes";
 
 export type AnyShape =  Rectangle | Circle | Line | Diamond | Arrow;
 
-export type ShapeConstructor = new (x: number, y: number, width: number, height: number) => AnyShape;
+export type ShapeConstructor = 
+            | (new (x: number, y: number, width: number, height: number, fillColor: string) => AnyShape) 
+            | (new (x: number, y: number, text?: string, fontSize?: number) => Text)
 
 /* map shape constructor */
 export const ShapeRegistry: Record< string, ShapeConstructor> = {
@@ -11,12 +13,13 @@ export const ShapeRegistry: Record< string, ShapeConstructor> = {
     circle: Circle,
     line: Line,
     diamond: Diamond,
-    arrow: Arrow
+    arrow: Arrow,
+    text: Text
 }
 
 type ExistingShape = {
     type: string,
-    shape: AnyShape
+    shape: AnyShape | Text
 }
 
 export class Draw {
@@ -99,7 +102,13 @@ export class Draw {
             return;
         }
 
-        const shape = new ShapeClass(this.startX, this.startY, width, height);
+        let shape: AnyShape | Text;
+
+        if(this.selectedShape === 'text'){
+            const text = prompt("Enter text") ?? "Saurabh Bharti";
+            shape = new (ShapeClass as typeof Text)(this.startX, this.startY, text, 20, "red");
+        } else 
+            shape = new (ShapeClass as typeof any) (this.startX, this.startY, width, height);
 
         /* call the draw method of that object */
         shape.draw(this.ctx);
@@ -157,12 +166,20 @@ export class Draw {
             const ShapeClass =  ShapeRegistry[data.type];
 
             if(!ShapeClass){
-                console.warn(`Shape "${this.selectedShape}" is not registered`);
+                console.warn(`Shape "${data.type}" is not registered`);
                 return;
             }
 
             // @ts-ignore
-            const shape = new ShapeClass(data.shape.startX, data.shape.startY, data.shape.width, data.shape.height);
+            let shape: AnyShape | Text;
+
+            if(data.type === 'text'){
+                // @ts-ignore
+                shape = new (ShapeClass as typeof Text)(data.shape.startX, data.shape.startY, data.shape.text, data.shape.fontSize, data.shape.fillColor);
+            } else 
+                // @ts-ignore
+                shape = new ShapeClass(data.shape.startX, data.shape.startY, data.shape.width, data.shape.height);
+
             shape.draw(this.ctx);
         });
 

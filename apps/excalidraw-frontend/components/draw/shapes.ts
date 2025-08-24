@@ -400,3 +400,54 @@ export class Arrow extends Shape {
         this.height = height;
     }
 }
+
+export class Text extends Shape {
+    private text: string;
+    private fontSize: number;
+    private fontFamily: string;
+
+    constructor(x: number, y: number, text?: string, fontSize?: number, fillColor?: string) {
+        super(x, y);
+
+        this.text = text ?? "";
+        this.fontSize = fontSize ?? 20;
+        
+
+        this.setStrokeColor("black");
+        this.setStrokeWidth(2);
+        this.setOpacity(1.0);
+        this.setShapeColor(fillColor ?? "red");
+    }
+
+    draw (ctx: CanvasRenderingContext2D) {
+        ctx.save();
+
+        ctx.strokeStyle = this.strokeColor || "black";   
+        ctx.lineWidth = this.strokeWidth || 2;          
+        ctx.lineCap = "round";                           
+        ctx.fillStyle = "red";                           
+        ctx.globalAlpha = this.opacity ?? 1.0;           
+        ctx.font = `${this.fontSize || 20}px Arial`;     
+
+        ctx.fillText(this.text, this.startX, this.startY);
+        ctx.restore();
+
+    }
+
+    /* implement the logic */
+    isPointInside(x: number, y: number): boolean {
+        return false;
+    }
+
+    setText(text: string): void {
+        this.text = text;
+    }
+
+    setFontSize(size: number): void {
+        this.fontSize = size;
+    }
+
+    setFontFamily(family: string): void {
+        this.fontFamily = family;
+    }
+}
