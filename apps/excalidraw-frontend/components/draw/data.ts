@@ -1,6 +1,13 @@
 import { HTTP_BACKEND } from "@/config";
 import axios from "axios";
 
+import { AnyShape } from "./draw";
+
+type messageDetails = {
+    type: string,
+    message: string,
+    roomId: number
+}
 export async function getExistingData(roomId: number) {
 
     const response = await axios.get(`${HTTP_BACKEND}/chats/${roomId}`,{
@@ -10,12 +17,10 @@ export async function getExistingData(roomId: number) {
     });
     const messages = response.data.data;
 
-    // @ts-ignore
-    const shape = messages.map((details: any) => {
+    const shape = messages.map((details: messageDetails) => {
         const data = JSON.parse(details.message);
         return data;
     })
 
-    console.log(shape);
     return shape;
 }

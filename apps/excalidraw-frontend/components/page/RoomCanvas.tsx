@@ -5,11 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import PageLoader from "./pageLoader";
 import Canvas from "./canvas";
 import axios from "axios";
+import Navbar from "./Navbar";
+
+export type ActiveShape = 'rect' | 'circle' | 'diamond' | 'oval' |
+                'text' | 'line' | 'arrow' | 'pencil' |
+                'eraser' | 'layers' | 'img';
 
 export default function RoomCanvas({ roomId }: { roomId: number }) {
     const socketRef = useRef<WebSocket | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [ activeShape, setActiveShape ] = useState<ActiveShape>('rect');
 
     const fetchToken = async () => {
         try {
@@ -79,5 +85,14 @@ export default function RoomCanvas({ roomId }: { roomId: number }) {
         return error ? <div>Error: {error}</div> : <PageLoader />;
     }
 
-    return <Canvas roomId={roomId} socket={socketRef.current} />;
+    return <>
+        <div className="relative w-full h-screen">
+            <div className="absolute top-0 left-0 w-full z-10 flex justify-center">
+                <Navbar activeShape={activeShape} setActiveShape={setActiveShape} />
+            </div>
+            <div className="w-full h-full">
+                <Canvas activeShape={activeShape} roomId={roomId} socket={socketRef.current} />
+            </div>
+        </div>
+    </>
 }

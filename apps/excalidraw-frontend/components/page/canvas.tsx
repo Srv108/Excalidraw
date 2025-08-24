@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { AnyShape, Draw } from "../draw/draw";
 import { Circle, Rectangle } from "../draw/shapes";
-
+import { ActiveShape } from "./RoomCanvas";
 
 type ShapeConstructor = new (x: number, y: number, width: number, height: number) => AnyShape;
 
@@ -16,12 +16,13 @@ const ShapeRegistry: Record< string, ShapeConstructor> = {
 export default function Canvas({
     roomId,
     socket,
+    activeShape
 }: {
-    roomId: number;
-    socket: WebSocket;
+    roomId: number,
+    socket: WebSocket,
+    activeShape: ActiveShape
 }) {
 
-    const [selectedShape, setSelectedShape] = useState<'rect' | 'circle'>('rect');
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const drawRef = useRef<Draw | null>(null);
     const [existingShapes, setExistingShapes] = useState<
@@ -29,10 +30,16 @@ export default function Canvas({
     >([]);
 
     useEffect(() => {
+        if(drawRef.current) {
+            drawRef.current.selectedShape = activeShape;
+        }
+    }, [activeShape]);
+
+    useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas || !socket) return;
 
-        const draw = new Draw(canvas, selectedShape, existingShapes, socket, roomId);
+        const draw = new Draw(canvas, activeShape, existingShapes, socket, roomId);
         drawRef.current = draw;
 
         return () => {
@@ -89,11 +96,11 @@ export default function Canvas({
         if (!socket) return;
 
         const handleClose = (event: CloseEvent) => {
-        console.log('Socket closed:', {
-            code: event.code,
-            reason: event.reason || 'No reason',
-            wasClean: event.wasClean,
-        });
+            console.log('Socket closed:', {
+                code: event.code,
+                reason: event.reason || 'No reason',
+                wasClean: event.wasClean,
+            });
         };
 
         const handleError = (error: Event) => {
