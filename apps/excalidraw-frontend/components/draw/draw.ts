@@ -1,7 +1,7 @@
 import { getExistingData } from "./data";
-import { Circle, Rectangle } from "./shapes";
+import { Arrow, Circle, Diamond, Line, Rectangle } from "./shapes";
 
-export type AnyShape =  Rectangle | Circle;
+export type AnyShape =  Rectangle | Circle | Line | Diamond | Arrow;
 
 export type ShapeConstructor = new (x: number, y: number, width: number, height: number) => AnyShape;
 
@@ -9,6 +9,9 @@ export type ShapeConstructor = new (x: number, y: number, width: number, height:
 export const ShapeRegistry: Record< string, ShapeConstructor> = {
     rect: Rectangle,
     circle: Circle,
+    line: Line,
+    diamond: Diamond,
+    arrow: Arrow
 }
 
 type ExistingShape = {

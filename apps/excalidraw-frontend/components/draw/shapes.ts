@@ -208,3 +208,195 @@ export class Circle extends Shape {
 
 }
 
+// export class Oval extends Shape {
+
+// }
+
+export class Line extends Shape{
+    private endX: number;
+    private endY: number;
+    private width: number;
+    private height: number;
+
+    constructor (x: number, y: number, width: number, height: number){
+        super(x, y);
+
+        this.width = width;
+        this.height = height;
+
+        /* calculate endx and endy */
+        this.endX = width + x;
+        this.endY = height + y;
+    }
+
+    draw (ctx: CanvasRenderingContext2D) {
+        ctx.save();
+        ctx.beginPath();
+
+        ctx.strokeStyle = this.strokeColor;
+        ctx.lineWidth = this.strokeWidth;
+        ctx.lineCap = this.strokeStyle;
+        ctx.fillStyle = this.fillColour;
+        ctx.globalAlpha = this.opacity;
+
+
+        /* draw line */
+        ctx.moveTo(this.startX, this.startY);
+        ctx.lineTo(this.endX, this.endY);
+        ctx.stroke();
+    }
+
+    /* point lie on the line  */
+    isPointInside(x: number, y: number): boolean {
+
+        /* calculate distance and verify is it on the line or not 
+
+            1.      this.startX = x1, this.endX = x2            x2 -> x1 + this.width
+            2.      this.startY = y1, this.endY = y2            y2 -> y1 + this.height
+            3.      x , y                                       
+        */
+
+        /* x1 - x, y1 - y */
+        const dis1 = Math.sqrt(Math.pow(this.startX - x, 2) + Math.pow(this.startY - y, 2));
+        /* x2 - x, y2 - y */
+        const dis2 = Math.sqrt(Math.pow(this.endX - x, 2) + Math.pow(this.endY - y, 2));
+
+        /* length of the line x1 - x2, y1 - y2      -> this.width , this.height */
+        const dis = Math.sqrt((this.width * this.width) + (this.height * this.height));
+
+        return dis === dis1 + dis2;
+    }
+
+    setSize (width: number, height: number) {
+        this.width = width;
+        this.height = height;
+    }
+}
+
+export class Diamond extends Shape {
+    private width: number;
+    private height: number;
+
+    constructor(x: number, y: number, width: number, height: number){
+        super(x, y);
+
+        this.width = width;
+        this.height = height;
+    }
+
+    draw (ctx: CanvasRenderingContext2D) {
+        ctx.save();
+        ctx.beginPath();
+
+        ctx.strokeStyle = this.strokeColor;
+        ctx.lineWidth = this.strokeWidth;
+        ctx.lineCap = this.strokeStyle;
+        ctx.fillStyle = this.fillColour;
+        ctx.globalAlpha = this.opacity;
+
+        const halfWidth = this.width / 2;
+        const halfHeight = this.height / 2;
+        ctx.moveTo(this.startX, this.startY - halfHeight);
+        ctx.lineTo(this.startX + halfWidth, this.startY);
+        ctx.lineTo(this.startX, this.startY + halfHeight);
+        ctx.lineTo(this.startX - halfWidth, this.startY);
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    isPointInside(x: number, y: number): boolean {
+        return false;
+    }
+
+    setSize(width: number, height: number) {
+
+    }
+}
+
+export class Arrow extends Shape {
+    private endX: number;
+    private endY: number;
+    private width: number;
+    private height: number;
+    private headLen: number = 10;
+
+    constructor (x: number, y: number, width: number, height: number){
+        super(x, y);
+
+        this.width = width;
+        this.height = height;
+
+        /* calculate endx and endy */
+        this.endX = width + x;
+        this.endY = height + y;
+    }
+
+    draw (ctx: CanvasRenderingContext2D) {
+        ctx.save();
+        ctx.beginPath();
+
+        ctx.strokeStyle = this.strokeColor;
+        ctx.lineWidth = this.strokeWidth;
+        ctx.lineCap = this.strokeStyle;
+        ctx.fillStyle = this.fillColour;
+        ctx.globalAlpha = this.opacity;
+
+
+        /* draw line */
+        ctx.moveTo(this.startX, this.startY);
+        ctx.lineTo(this.endX, this.endY);
+        ctx.stroke()
+
+        /* draw the arrow head of the line */
+
+        /* const slope = (this.endY - this.startY) / (this.endX - this.startX); 
+            atan2   -> inverse tan()
+        */
+        const angle = Math.atan2(this.endY - this.startY, this.endX - this.startX)
+
+        /* coordinates of the both arrow head */
+        const newX1 = this.endX - (this.headLen) * Math.cos(angle - Math.PI / 6);
+        const newY1 = this.endY - (this.headLen) * Math.sin(angle - Math.PI / 6);
+
+        const newX2 = this.endX - (this.headLen) * Math.cos(angle + Math.PI / 6);
+        const newY2 = this.endY - (this.headLen) * Math.sin(angle + Math.PI / 6);
+
+        ctx.beginPath();
+        ctx.moveTo(this.endX, this.endY);
+        ctx.lineTo(newX1, newY1);
+        ctx.stroke();
+        // ctx.beginPath();
+        ctx.moveTo(this.endX, this.endY);
+        ctx.lineTo(newX2, newY2);
+        ctx.stroke();
+        ctx.fill();
+    }
+
+    /* point lie on the line  */
+    isPointInside(x: number, y: number): boolean {
+
+        /* calculate distance and verify is it on the line or not 
+
+            1.      this.startX = x1, this.endX = x2            x2 -> x1 + this.width
+            2.      this.startY = y1, this.endY = y2            y2 -> y1 + this.height
+            3.      x , y                                       
+        */
+
+        /* x1 - x, y1 - y */
+        const dis1 = Math.sqrt(Math.pow(this.startX - x, 2) + Math.pow(this.startY - y, 2));
+        /* x2 - x, y2 - y */
+        const dis2 = Math.sqrt(Math.pow(this.endX - x, 2) + Math.pow(this.endY - y, 2));
+
+        /* length of the line x1 - x2, y1 - y2      -> this.width , this.height */
+        const dis = Math.sqrt((this.width * this.width) + (this.height * this.height));
+
+        return dis === dis1 + dis2;
+    }
+
+    setSize (width: number, height: number) {
+        this.width = width;
+        this.height = height;
+    }
+}

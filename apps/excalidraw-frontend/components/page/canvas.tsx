@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { AnyShape, Draw } from "../draw/draw";
-import { Circle, Rectangle } from "../draw/shapes";
+import { Arrow, Circle, Diamond, Line, Rectangle } from "../draw/shapes";
 import { ActiveShape } from "./RoomCanvas";
 
 type ShapeConstructor = new (x: number, y: number, width: number, height: number) => AnyShape;
@@ -11,6 +11,9 @@ type ShapeConstructor = new (x: number, y: number, width: number, height: number
 const ShapeRegistry: Record< string, ShapeConstructor> = {
     rect: Rectangle,
     circle: Circle,
+    line: Line,
+    diamond: Diamond,
+    arrow: Arrow
 }
 
 export default function Canvas({

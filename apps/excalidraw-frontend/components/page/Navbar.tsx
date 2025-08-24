@@ -1,4 +1,4 @@
-import { Square, Diamond, Circle, Eraser, Layers, Text, Pencil, SeparatorHorizontal , Image, RectangleHorizontalIcon} from "lucide-react";
+import { ArrowRight, Diamond, Circle, Eraser, Layers, Text, Pencil , Image, RectangleHorizontalIcon, Minus, ArrowBigRight} from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { ActiveShape } from "./RoomCanvas";
 
@@ -11,10 +11,10 @@ export default function Navbar({ activeShape, setActiveShape }: NavbarProps) {
 
     const tools = [
             { id: 'rect', icon: RectangleHorizontalIcon },
-            { id: 'square', icon: Square },
             { id: 'diamond', icon: Diamond },
             { id: 'circle', icon: Circle },
-            { id: 'line', icon: SeparatorHorizontal },
+            { id: 'arrow', icon: ArrowRight },
+            { id: 'line', icon: Minus },
             { id: 'pencil', icon: Pencil },
             { id: 'text', icon: Text },
             { id: 'img', icon: Image },
