@@ -1,10 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Button } from '@repo/ui/components/button';
 import  heroDrawing  from "../../../../public/hero-drawing.jpg";
 
 export default function Hero(){
+
+    const router = useRouter();
+
     return (
         <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-main animate-gradient" />
@@ -50,7 +54,8 @@ export default function Hero(){
                 transition={{ duration: 0.8, delay: 0.6 }}
             >
                 <Button 
-                size="lg" 
+                size="lg"
+                onClick={() => router.push('/signin')}
                 className="glass hover:glass text-foreground hover:scale-105 transition-all duration-300 animate-pulse-glow px-8 py-4 text-lg font-semibold"
                 >
                 Start Drawing Now

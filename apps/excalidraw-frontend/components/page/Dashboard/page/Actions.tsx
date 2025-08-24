@@ -1,9 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@repo/ui/components/button';
 
 export default function Actions(){
+
+    const router = useRouter();
+
     return (
         <section className="relative py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-main animate-gradient" />
@@ -44,6 +48,7 @@ export default function Actions(){
             >
                 <Button 
                 size="lg" 
+                onClick={() => router.push('/signin')}
                 className="glass hover:glass text-foreground group hover:scale-105 transition-all duration-300 px-8 py-4 text-lg font-semibold animate-pulse-glow"
                 >
                 Get Started Free

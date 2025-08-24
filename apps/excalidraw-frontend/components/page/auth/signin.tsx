@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function SignInPage() {
     return (
@@ -65,6 +67,15 @@ export default function SignInPage() {
             >
                 Sign In with Google
             </motion.button>
+            </div>
+            {/* 👇 Added signup navigation */}
+            <div className="mt-6 text-center">
+                <p className="text-sm md:text-base text-muted-foreground">
+                    Don’t have an account?{" "}
+                    <Link href="/signup" className="text-purple-700 font-medium hover:underline">
+                        Sign up
+                    </Link>
+                </p>
             </div>
         </div>
         </motion.div>
