@@ -22,7 +22,7 @@ export class Draw {
     public ExistingData: ExistingShape[];
     private roomId: number;
     private clicked: boolean;
-    private selectedShape: string;
+    public selectedShape: string;
     private startX: number = 0;
     private startY: number = 0;
 
@@ -163,30 +163,6 @@ export class Draw {
             shape.draw(this.ctx);
         });
 
-    }
-
-    broadcastShape(shape: any) {
-        if (this.socket.readyState === WebSocket.OPEN) {
-            try {
-                const serializedShape = {
-                    startX: shape.startX,
-                    startY: shape.startY,
-                    width: shape.width,
-                    height: "height" in shape ? shape.height : undefined,
-                    type: this.selectedShape,
-                };
-                this.socket.send(
-                    JSON.stringify({
-                        type: "chat",
-                        message: JSON.stringify(serializedShape),
-                        roomId: this.roomId,
-                    })
-                );
-                console.log("Shape broadcasted:", serializedShape);
-            } catch (error) {
-                console.error("Failed to send shape:", error);
-            }
-        }
     }
 
     destroyMouseHandler (): void {

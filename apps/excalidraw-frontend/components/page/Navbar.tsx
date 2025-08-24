@@ -26,18 +26,19 @@ export default function Navbar({ activeShape, setActiveShape }: NavbarProps) {
     return (
         
         <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl shadow">
-            {tools.map((tool) => (
-                <Button
-                    key={tool.id}
-                    onClick={() => setActiveShape(tool.id as ActiveShape)}
-                    className={`p-2 rounded-lg text-sm text-black ${
-                        activeShape === tool.id ? "bg-indigo-100 text-indigo-700" : "text-gray-600"
-                    }`}
-                >
-                    <tool.icon className="w-5 h-5" />
-                </Button>
-            ))}
+        {tools.map((tool) => (
+            <Button
+            key={tool.id}
+            onClick={() => setActiveShape(tool.id as ActiveShape)}
+            className={`p-2 rounded-lg text-sm ${
+                activeShape === tool.id
+                ? "bg-gray-500 text-white shadow-md"  // Active = purple with white icon
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200" // Inactive = neutral gray
+            }`}
+            >
+            <tool.icon className="w-5 h-5" />
+            </Button>
+        ))}
         </div>
-
     );
 }
