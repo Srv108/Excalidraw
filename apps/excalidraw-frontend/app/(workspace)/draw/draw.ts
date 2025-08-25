@@ -26,21 +26,24 @@ export class Draw {
     private canvas: HTMLCanvasElement;
     public ctx: CanvasRenderingContext2D;
     public ExistingData: ExistingShape[];
-    private roomId: number;
+    private roomId: number | null;
     private clicked: boolean;
     public selectedShape: string;
     private startX: number = 0;
     private startY: number = 0;
+    private token: string | null;
 
     socket: WebSocket;
 
 
-    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: ExistingShape[], socket: WebSocket, roomId: number) {
+    constructor (canvas: HTMLCanvasElement, selectedShape: string, previousData: ExistingShape[], socket: WebSocket, roomId: number, token: string) {
         this.selectedShape = selectedShape;
         this.ExistingData = previousData;
         this.roomId = roomId ?? null;
         this.socket = socket;
+        this.token = token;
 
+        console.log(token);
         if(!canvas) {
             throw new Error("canvas element is required") ;
         }
@@ -64,13 +67,12 @@ export class Draw {
         this.redrawCanvas();
 
         this.clicked = false;
-
         this.init();
         this.initMouseHandler();    /* initialise mouse events */
     }
 
     async init() {
-        this.ExistingData = await getExistingData(this.roomId);
+        this.ExistingData = await getExistingData(this.roomId, this.token);
         this.clearCanvas();
         this.redrawCanvas();
     }

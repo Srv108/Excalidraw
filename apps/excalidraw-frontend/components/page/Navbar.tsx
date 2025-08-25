@@ -1,6 +1,6 @@
 import { ArrowRight, Diamond, Circle, Eraser, Layers, Pencil , Image, RectangleHorizontalIcon, Minus, LucideIcon, Text as TextIcon} from "lucide-react";
 import { Button } from "@repo/ui/components/button";
-import { ActiveShape } from "./RoomCanvas";
+import { ActiveShape } from "../../app/(workspace)/room/RoomCanvas";
 
 interface NavbarProps {
     activeShape: ActiveShape,

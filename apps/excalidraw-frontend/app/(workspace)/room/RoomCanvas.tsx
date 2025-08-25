@@ -1,44 +1,42 @@
 'use client'
 
-import { HTTP_BACKEND, WS_URL } from "@/config";
 import { useEffect, useRef, useState } from "react";
-import PageLoader from "./pageLoader";
+import PageLoader from "../../../components/page/pageLoader";
 import Canvas from "./canvas";
-import axios from "axios";
-import Navbar from "./Navbar";
+import Navbar from "../../../components/page/Navbar";
+import { WS_URL } from "@/config";
+import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 export type ActiveShape = 'rect' | 'circle' | 'diamond' | 'oval' |
                 'text' | 'line' | 'arrow' | 'pencil' |
                 'eraser' | 'layers' | 'img';
 
-export default function RoomCanvas({ roomId }: { roomId: number }) {
+export default function RoomCanvas() {
     const socketRef = useRef<WebSocket | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [ activeShape, setActiveShape ] = useState<ActiveShape>('rect');
+    const [ jwtToken, setJwtToken ] = useState<string | null>(null);
 
-    const fetchToken = async () => {
-        try {
-            const response = await axios.post(`${HTTP_BACKEND}/signin`, {
-                email: "saurav7@gmail.com",
-                password: "3264o12ifnj",
-            });
-            return response.data.token;
-        } catch (err) {
-            console.error("Token fetch error:", err);
-            throw new Error("Failed to authenticate. Please check credentials or server.");
+    const { data: session } = useSession();
+
+    const params = useParams();
+    const roomId = params.roomId ? parseInt(params.roomId as string) : null;
+
+    useEffect(() => {
+        if(session){
+            setJwtToken(session.jwt ?? null);
         }
-    };
-
-
+    }, [session]);
 
     useEffect(() => {
         let isMounted = true;
 
         const connectWebSocket = async () => {
             try {
-                const token = await fetchToken();
-                const ws = new WebSocket(`${WS_URL}?token=${token}`);
+
+                const ws = new WebSocket(`${WS_URL}?token=${jwtToken}`);
                 socketRef.current = ws;
 
                 ws.onopen = () => {
@@ -79,7 +77,7 @@ export default function RoomCanvas({ roomId }: { roomId: number }) {
                 socketRef.current = null;
             }
         };
-    }, [roomId]);
+    }, [roomId, jwtToken]);
 
     if (isLoading || !socketRef.current) {
         return error ? <div>Error: {error}</div> : <PageLoader />;

@@ -147,7 +147,7 @@ app.post('/room', isAuthenticated, async (req , res ) => {
 
         res.status(200).json({
             message: "room created successfully",
-            room_details: room,
+            details: room,
         })
 
     } catch (error) {

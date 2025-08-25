@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { AnyShape, Draw } from "../draw/draw";
 import { Arrow, Circle, Diamond, Line, Rectangle, Text } from "../draw/shapes";
 import { ActiveShape } from "./RoomCanvas";
+import { useSession } from "next-auth/react";
 
 export type ShapeConstructor = 
             | (new (x: number, y: number, width: number, height: number, fillColor: string) => AnyShape) 
@@ -24,7 +25,7 @@ export default function Canvas({
     socket,
     activeShape
 }: {
-    roomId: number,
+    roomId: number | null,
     socket: WebSocket,
     activeShape: ActiveShape
 }) {
@@ -34,6 +35,17 @@ export default function Canvas({
     const [existingShapes, setExistingShapes] = useState<
         { type: string; shape: AnyShape | Text }[]
     >([]);
+    const [ jwtToken, setJwtToken ] = useState<string | null>(null);
+
+    const { data: session } = useSession();
+
+    useEffect(() => {
+        console.log(session);
+        if(session){
+            setJwtToken(session.jwt ?? null);
+        }
+    },[ session ])
+
 
     useEffect(() => {
         if(drawRef.current) {
@@ -45,13 +57,13 @@ export default function Canvas({
         const canvas = canvasRef.current;
         if (!canvas || !socket) return;
 
-        const draw = new Draw(canvas, activeShape, existingShapes, socket, roomId);
+        const draw = new Draw(canvas, activeShape, existingShapes, socket, roomId, jwtToken);
         drawRef.current = draw;
 
         return () => {
             draw.destroyMouseHandler();
         };
-    }, [roomId, socket]);
+    }, [roomId, socket, jwtToken]);
 
     // Handle incoming WebSocket messages
     useEffect(() => {

@@ -54,18 +54,18 @@ export default function Hero(){
                 transition={{ duration: 0.8, delay: 0.6 }}
             >
                 <Button 
-                size="lg"
-                onClick={() => router.push('/signin')}
-                className="glass hover:glass text-foreground hover:scale-105 transition-all duration-300 animate-pulse-glow px-8 py-4 text-lg font-semibold"
+                    size="lg"
+                    onClick={() => router.push('/signin')}
+                    className=" glass hover:glass text-foreground hover:scale-105 transition-all duration-300 animate-pulse-glow text-lg font-semibold"
                 >
-                Start Drawing Now
+                    Start Drawing Now
                 </Button>
                 <Button 
-                variant="outline" 
-                size="lg"
-                className="glass border-white/30 text-white hover:bg-white/10 hover:scale-105 transition-all duration-300 px-8 py-4 text-lg"
+                    variant="outline" 
+                    size="lg"
+                    className="glass border-white/30 text-white hover:bg-white/10 hover:scale-105 transition-all duration-300  text-lg"
                 >
-                Watch Demo
+                    Watch Demo
                 </Button>
             </motion.div>
             </motion.div>
