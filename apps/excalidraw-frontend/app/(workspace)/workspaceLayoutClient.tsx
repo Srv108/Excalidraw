@@ -11,7 +11,7 @@ export default function WorkspaceLayoutClient({
     jwtToken: string;
     children: ReactNode;
     }) {
-    const setToken = useStore((state) => state.setToken);
+    const setToken = useStore((state: any) => state.setToken);
 
     useEffect(() => {
         if (jwtToken) {

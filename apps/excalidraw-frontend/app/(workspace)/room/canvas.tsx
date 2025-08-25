@@ -55,10 +55,11 @@ export default function Canvas({
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas || !socket) return;
+        if (!canvas || !socket || roomId === null || jwtToken === null) return;
 
         const draw = new Draw(canvas, activeShape, existingShapes, socket, roomId, jwtToken);
         drawRef.current = draw;
+        draw.init();
 
         return () => {
             draw.destroyMouseHandler();

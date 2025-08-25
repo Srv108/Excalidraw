@@ -67,12 +67,15 @@ export class Draw {
         this.redrawCanvas();
 
         this.clicked = false;
-        this.init();
         this.initMouseHandler();    /* initialise mouse events */
     }
 
     async init() {
-        this.ExistingData = await getExistingData(this.roomId, this.token);
+        if (this.roomId === null || this.token === null) {
+            console.warn("Room ID is null and token , cannot fetch existing data");
+            return;
+        }
+        this.ExistingData = await getExistingData(this.roomId!, this.token);
         this.clearCanvas();
         this.redrawCanvas();
     }
@@ -110,8 +113,12 @@ export class Draw {
             const text = prompt("Enter text") ?? "Saurabh Bharti";
             shape = new (ShapeClass as typeof Text)(this.startX, this.startY, text, 20, "red");
         } else 
-            shape = new (ShapeClass as typeof any) (this.startX, this.startY, width, height);
-
+            shape = new (ShapeClass as new (x: number, y: number, width: number, height: number) => AnyShape)(
+                this.startX,
+                this.startY,
+                width,
+                height
+            );
         /* call the draw method of that object */
         shape.draw(this.ctx);
         this.ExistingData.push({
@@ -146,7 +153,12 @@ export class Draw {
             if(!ShapeClass) return;
 
             /* create an instance of the current shape */
-            const previewShape = new ShapeClass(this.startX, this.startY, width, height);
+            const previewShape = new (ShapeClass as new (x: number, y: number, width: number, height: number) => AnyShape)(
+                this.startX,
+                this.startY,
+                width,
+                height
+            );
             previewShape.draw(this.ctx);    /* draw the shapes of the instances */
 
             /* send the live drawing to the socket also 

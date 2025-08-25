@@ -4,7 +4,7 @@ import axios from "axios";
 type messageDetails = {
     type: string,
     message: string,
-    roomId: number
+    roomId: number | null
 }
 export async function getExistingData(roomId: number, token: string) {
     

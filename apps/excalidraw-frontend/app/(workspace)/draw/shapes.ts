@@ -404,7 +404,7 @@ export class Arrow extends Shape {
 export class Text extends Shape {
     private text: string;
     private fontSize: number;
-    private fontFamily: string;
+    private fontFamily: string = "Arial";
 
     constructor(x: number, y: number, text?: string, fontSize?: number, fillColor?: string) {
         super(x, y);
