@@ -3,7 +3,7 @@ import cors from "cors";
 import { CreateRoomSchema, CreateUserSchema } from "@repo/common/types";
 import { client } from "@repo/db/client"
 import bcrypt from "bcrypt";
-import { isPrismaError, PrismaErrorHandler } from "./utils/db";
+import { isPrismaError, PrismaErrorHandler } from "@repo/db/client";
 import  jwt  from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config"
 import { isAuthenticated } from "./middleware/middleware";
