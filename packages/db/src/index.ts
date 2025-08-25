@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 export const client = new PrismaClient();
 
@@ -9,7 +9,7 @@ export class PrismaErrorHandler extends Error {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             switch (error.code) {
                 case "P2002":
-                    message = "A user with the same email already exists";
+                    message = "A user with same email already exists";
                     break;
                 case "P2003":
                     message = `Foreign key constraint failed on field: ${error.meta?.field_name}`;
@@ -22,13 +22,11 @@ export class PrismaErrorHandler extends Error {
                     break;
             }
         } else if (error instanceof Prisma.PrismaClientValidationError) {
-            message = "Validation error: Data does not match the Prisma schema.";
+            message = "Validation error: The data provided does not match the schema.";
         } else if (error instanceof Prisma.PrismaClientInitializationError) {
             message = `Initialization error: ${error.message}`;
         } else if (error instanceof Prisma.PrismaClientRustPanicError) {
             message = "Prisma internal error: The query engine panicked.";
-        } else if (error instanceof Error) {
-            message = error.message;
         }
 
         super(message);
