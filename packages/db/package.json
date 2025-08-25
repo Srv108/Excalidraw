@@ -6,6 +6,9 @@
     "./client": "./src/index.ts"
   },
   "scripts": {
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
