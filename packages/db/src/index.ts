@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import {
     PrismaClientKnownRequestError,
     PrismaClientValidationError,
@@ -7,7 +7,7 @@ import {
 } from "@prisma/client/runtime/library";
 
 export const client = new PrismaClient();
-
+export const prisma = Prisma;
 export class PrismaErrorHandler extends Error {
     constructor(error: unknown) {
     let message = "Unknown Error";

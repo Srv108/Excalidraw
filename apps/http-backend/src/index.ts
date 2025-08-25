@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { prisma } from "@repo/db/client";
 import { CreateRoomSchema, CreateUserSchema } from "@repo/common/types";
 import { client } from "@repo/db/client"
 import bcrypt from "bcrypt";
@@ -9,7 +10,6 @@ import { JWT_SECRET } from "@repo/backend-common/config"
 import { isAuthenticated } from "./middleware/middleware";
 import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
-
 
 const app = express();
 app.use(express.json());
@@ -118,7 +118,7 @@ app.post('/room', isAuthenticated, async (req , res ) => {
 
     try {
         
-        const [room, roomMember] = await client.$transaction(async (tx) => {
+        const [room, roomMember] = await client.$transaction(async (tx: any) => {
             // Step 1: Create the room
             const newRoom = await tx.room.create({
                 data: {
