@@ -11,7 +11,7 @@ import { useSession } from 'next-auth/react';
 export default function Dashboard() {
     const [showJoinForm, setShowJoinForm] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
-    const [roomId, setRoomId] = useState('');
+    const [joinCode, setJoinCode] = useState('');
     const [roomName, setRoomName] = useState('');
     const [jwtToken, setJwtToken] = useState<string | null>(null);
     const { data: session } = useSession();
@@ -24,12 +24,38 @@ export default function Dashboard() {
         }
     }, [session]);
 
-    const handleJoin = (e: React.FormEvent) => {
+    const handleJoin = async(e: React.FormEvent) => {
         e.preventDefault();
         console.log('handleJoin called');
-        if (!roomId.trim()) return;
-        console.log('Joining room with ID:', roomId);
-        router.push(`/canvas/${roomId}`);
+        if (!joinCode.trim()) return;
+
+        if (!jwtToken) {
+            console.error('No token available');
+            return;
+        }
+
+        try {
+            console.log('joing room ....');
+
+            const joinDetails = await axios.post(`${HTTP_BACKEND}/join-room`, { joinCode: joinCode }, 
+                {
+                    headers: {
+                        'access-token': jwtToken
+                    }
+                }
+            );
+
+            const membership = joinDetails.data.membership;
+            console.log(membership);
+
+            const roomId = membership.roomId;
+            if(!roomId) return;
+
+            console.log('Joining room with ID:', roomId);
+            router.push(`/canvas/${roomId}`);
+        } catch (error) {
+            console.log('failed to join room', error);
+        }
     };
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -187,8 +213,8 @@ export default function Dashboard() {
                                     </h2>
                                     <input
                                         type="text"
-                                        value={roomId}
-                                        onChange={(e) => setRoomId(e.target.value)}
+                                        value={joinCode}
+                                        onChange={(e) => setJoinCode(e.target.value)}
                                         placeholder="e.g. abc-123-xyz"
                                         className="w-full rounded-md border border-border bg-background/80 px-4 py-3 text-center text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                         required

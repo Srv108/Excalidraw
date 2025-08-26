@@ -63,6 +63,7 @@ export default function Hero(){
                 <Button 
                     variant="outline" 
                     size="lg"
+                    onClick={() => router.push('/dashboard')}
                     className="glass border-white/30 text-white hover:bg-white/10 hover:scale-105 transition-all duration-300  text-lg"
                 >
                     Watch Demo

@@ -284,7 +284,13 @@ app.get('/room-details', isAuthenticated, async (req, res) => {
                     include: {
                         memberships: {
                             include: {
-                                user: true
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        photo: true
+                                    }
+                                }
                             }
                         },
                         chats: true
@@ -311,14 +317,35 @@ app.post('/room-invite', isAuthenticated, async(req, res) => {
     const userId = req.user?.id;
     const roomId = req.body.roomId;
     try {
-        const code = uuidv4().replace(/-/g, '').slice(0, 8).toUpperCase();
-        const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+        /* first current user is admin or not */
         const room = await client.room.findUnique({
             where: { id: roomId, adminId: userId }
         })
 
         if(!room) return res.status(403).json({message: 'you are not the admin of the room...'});
+
+        /* first check invite code already exist or not */
+
+        const inviteRoom = await client.roomInvite.findUnique({
+            where: { roomId: roomId }
+        })
+
+        if(inviteRoom){
+            const isValidCode = inviteRoom?.expiresAt >= new Date();
+            
+            if (isValidCode) return res.status(200).json({ message: "join code fetched successfully", code: inviteRoom.code});
+
+            /* if code expired delete the all invite table with this room-id */
+            if(!isValidCode){
+                await client.roomInvite.deleteMany({
+                    where: { roomId: roomId }
+                })
+            }
+        }
+
+        const code = uuidv4().replace(/-/g, '').slice(0, 8).toUpperCase();
+        const expiredAt = new Date(Date.now() + 60 * 60 * 1000);
 
         const roomInvite = await client.roomInvite.create({
             data: {
@@ -349,13 +376,28 @@ app.post('/join-room', isAuthenticated, async(req, res) => {
         const roomInvite = await client.roomInvite.findUnique({
             where: {
                 code: joinCode
-            },
-            select: { roomId: true }
+            }
         });
 
         if(! roomInvite){
             return res.status(404).json({ error: "Invalid join code" });
         }
+
+        /* given code is expired */
+        if(roomInvite.expiresAt < new Date()) return res.status(402).json({ message: "join code no more available" });
+
+        /* may be current user alrady member of this room check first  */
+
+        const isAlreadyMember = await client.roomMember.findUnique({
+            where: {
+                roomId_userId: {
+                    roomId: roomInvite.roomId,
+                    userId: userId
+                }
+            }
+        })
+
+        if(isAlreadyMember) return res.status(202).json({ message: "you are already member of this room" });
 
         const newMembership = await client.roomMember.create({
             data: {
