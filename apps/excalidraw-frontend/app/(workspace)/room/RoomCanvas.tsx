@@ -6,7 +6,7 @@ import Canvas from "./canvas";
 import Navbar from "../../../components/page/Navbar";
 import { WS_URL } from "@/config";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export type ActiveShape = 'rect' | 'circle' | 'diamond' | 'oval' |
                 'text' | 'line' | 'arrow' | 'pencil' |
@@ -19,12 +19,17 @@ export default function RoomCanvas() {
     const [ activeShape, setActiveShape ] = useState<ActiveShape>('rect');
     const [ jwtToken, setJwtToken ] = useState<string | null>(null);
 
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
 
     const params = useParams();
+    const router = useRouter();
     const roomId = params.roomId ? parseInt(params.roomId as string) : null;
 
+    
     useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push('/signin');
+        }
         if(session){
             setJwtToken(session.jwt ?? null);
         }
@@ -78,6 +83,10 @@ export default function RoomCanvas() {
             }
         };
     }, [roomId, jwtToken]);
+
+    if (status === "loading") {
+        return <PageLoader />
+    }
 
     if (isLoading || !socketRef.current) {
         return error ? <div>Error: {error}</div> : <PageLoader />;
