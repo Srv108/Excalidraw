@@ -1,3 +1,199 @@
+# DoodleGlow — Collaborative Whiteboard (Turborepo)
+
+A real-time collaborative whiteboard app inspired by Excalidraw. Draw, sketch, brainstorm, and collaborate with your team in real-time — built inside a Turborepo monorepo.
+
+---
+
+## 🚀 Features
+
+* ✍️ **Real-time drawing canvas** — freehand strokes, shapes, text, and selection.
+* 👥 **Rooms & invites** — create rooms, generate 8‑char join codes, and invite collaborators with expirations.
+* 🔁 **Live collaboration** — sync drawing events via WebSockets.
+* 🔐 **Authentication** — Email + OAuth (Google) example wiring.
+* 🗂️ **Memberships** — room member management via Prisma join table.
+* 📦 **Monorepo** — frontend, backend, and shared packages managed by Turborepo.
+* 🧰 **Dev tooling** — TypeScript, ESLint, Prettier, Prisma migrations.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer      | Technology                            |
+| ---------- | ------------------------------------- |
+| Frontend   | Next.js (App Router), React, Tailwind |
+| Backend    | Node.js, Express, WebSocket (ws)      |
+| Database   | PostgreSQL (Neon/Managed), Prisma     |
+| Monorepo   | Turborepo, pnpm                       |
+| Auth       | NextAuth / Clerk (examples)           |
+| Deployment | Vercel (frontend), AWS EC2 (backend)  |
+
+---
+
+## 🔢 Invite / Code generation
+
+We generate an 8-character uppercase random code using `uuid`:
+
+```ts
+import { v4 as uuidv4 } from 'uuid';
+
+export function generateCode(): string {
+  return uuidv4().replace(/-/g, '').slice(0, 8).toUpperCase();
+}
+```
+
+Set an expiration when creating invites:
+
+```ts
+const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+```
+
+When validating, compare against `expiresAt` (not the code string).
+
+---
+
+## 📁 Monorepo Layout
+
+```
+repo-root/
+├── apps/
+│   ├── frontend    # Next.js app (UI + client)
+│   ├── backend     # Express + WebSocket server (API)
+│   └── db          # Prisma schema & migrations
+├── packages/
+│   ├── ui          # Shared React components
+│   ├── backend-common # Shared server utilities
+│   └── types       # Shared TypeScript types
+├── turbo.json
+├── pnpm-workspace.yaml
+└── package.json
+```
+
+---
+
+## ⚙️ Environment Variables
+
+Create `.env` in relevant apps (examples below):
+
+**apps/backend/.env**
+
+```
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB?schema=public
+NEXTAUTH_SECRET=your_secret_here
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+PORT=3001
+```
+
+**apps/frontend/.env.local**
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXTAUTH_URL=http://localhost:3000
+```
+
+---
+
+## 🧭 Getting Started (Local)
+
+1. **Clone & install**
+
+```bash
+git clone <YOUR_GIT_REPO_URL>
+cd <repo-root>
+pnpm install
+```
+
+2. **Create env files** — place values in `apps/backend/.env` and `apps/frontend/.env.local`.
+
+3. **Prisma: generate & migrate**
+
+```bash
+cd apps/db
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+4. **Run dev**
+
+From repo root:
+
+```bash
+pnpm dev
+# or
+pnpm exec turbo dev
+```
+
+This runs frontend (Next.js) and backend concurrently using your Turborepo pipeline.
+
+---
+
+## 🔁 Example Endpoint: Join Room (checks invite expiry + creates membership)
+
+```ts
+app.post('/join-room', isAuthenticated, async (req, res) => {
+  const joinCode = req.body.joinCode;
+  const userId = req.user?.id;
+
+  const invite = await prisma.roomInvite.findFirst({
+    where: {
+      code: joinCode,
+      expiresAt: { gte: new Date() }
+    }
+  });
+
+  if (!invite) return res.status(400).json({ error: 'Invalid or expired invite' });
+
+  await prisma.roomMember.create({
+    data: { roomId: invite.roomId, userId, role: 'MEMBER' }
+  });
+
+  const room = await prisma.room.findUnique({
+    where: { id: invite.roomId },
+    include: { memberships: { include: { user: true } }, chats: true }
+  });
+
+  res.json({ room });
+});
+```
+
+---
+
+## 🖼️ Screenshots (placeholders)
+
+* Landing Page: [![landing page](image-2.png)] [![Features](image-3.png)] [![collaborate](image-4.png)] 
+* Login: [![login](image-5.png)]
+* Dashboard: [![Dashboard](image-1.png)]
+* Canvas: [![canvas](image.png)]
+
+---
+
+## ☁️ Deployment Notes
+
+* Use **Vercel** for the frontend (build `apps/frontend`).
+* Use **AWS EC2** or any Node host for the backend; enable HTTPS with **Let's Encrypt**.
+* For production DB migrations, run: `npx prisma migrate deploy`.
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create a feature branch
+3. Commit & push
+4. Open a Pull Request
+
+---
+
+## 📜 License
+
+MIT © Saurabh Kumar
+
+---
+
+*If you want this formatted exactly like the Full Stack AI README you showed (with badges, a short intro paragraph, or specific sections added/removed), tell me which parts to copy over and I’ll update the file.*
+
+
 # Turborepo starter
 
 This Turborepo starter is maintained by the Turborepo core team.
@@ -133,3 +329,6 @@ Learn more about the power of Turborepo:
 - [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
 - [Configuration Options](https://turborepo.com/docs/reference/configuration)
 - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+
+
+

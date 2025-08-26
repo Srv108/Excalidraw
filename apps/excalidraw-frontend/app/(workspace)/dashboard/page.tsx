@@ -44,7 +44,7 @@ export default function Dashboard() {
                     }
                 }
             );
-
+            
             const membership = joinDetails.data.membership;
             console.log(membership);
 

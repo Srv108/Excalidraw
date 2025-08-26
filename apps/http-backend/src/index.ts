@@ -253,7 +253,7 @@ app.get('/room', isAuthenticated, async (req, res) => {
         })
 
         if(!roomMember){
-            return res.status(403).json({ error: "You are not a member of this room" });
+            throw new Error("You are not a member of this room" );
         }
 
         return res.json({
@@ -262,7 +262,7 @@ app.get('/room', isAuthenticated, async (req, res) => {
         })
 
     } catch (error) {
-        return res.status(401).json({ message: "failed to fetch the room details" });
+        return res.status(401).json({ message: "failed to fetch the room details", error });
     }
 })
 
@@ -300,7 +300,7 @@ app.get('/room-details', isAuthenticated, async (req, res) => {
         })
 
         if(!roomMember){
-            return res.status(403).json({ error: "You are not a member of this room" });
+            throw new Error("You are not a member of this room" );
         }
 
         return res.json({
@@ -309,7 +309,7 @@ app.get('/room-details', isAuthenticated, async (req, res) => {
         })
 
     } catch (error) {
-        return res.status(401).json({ message: "failed to fetch the room details" });
+        return res.status(401).json({ message: "failed to fetch the room details", error });
     }
 })
 
@@ -323,7 +323,7 @@ app.post('/room-invite', isAuthenticated, async(req, res) => {
             where: { id: roomId, adminId: userId }
         })
 
-        if(!room) return res.status(403).json({message: 'you are not the admin of the room...'});
+        if(!room) throw new Error ('you are not the admin of the room...');
 
         /* first check invite code already exist or not */
 
@@ -355,14 +355,17 @@ app.post('/room-invite', isAuthenticated, async(req, res) => {
             }
         })
 
-        if(!roomInvite) res.status(402).json({ message: "failed to create join code"});
+        if(!roomInvite) throw new Error("failed to create join code");
 
         res.json({
             message: "Join code created successfully",
             joinCode: code
         })
     } catch (error) {
-        
+        res.status(403).json({
+            message: "failed to generate invite code",
+            error: error
+        })
     }
 })
 
@@ -380,11 +383,11 @@ app.post('/join-room', isAuthenticated, async(req, res) => {
         });
 
         if(! roomInvite){
-            return res.status(404).json({ error: "Invalid join code" });
+            throw new Error("Invalid join code")
         }
 
         /* given code is expired */
-        if(roomInvite.expiresAt < new Date()) return res.status(402).json({ message: "join code no more available" });
+        if(roomInvite.expiresAt < new Date()) throw new Error("join code no more available" );
 
         /* may be current user alrady member of this room check first  */
 
@@ -397,7 +400,7 @@ app.post('/join-room', isAuthenticated, async(req, res) => {
             }
         })
 
-        if(isAlreadyMember) return res.status(202).json({ message: "you are already member of this room" });
+        if(isAlreadyMember) throw new Error("you are already member of this room");
 
         const newMembership = await client.roomMember.create({
             data: {
@@ -412,7 +415,8 @@ app.post('/join-room', isAuthenticated, async(req, res) => {
     } catch (error) {
         console.log('error in joing room',error);
         res.json({
-            message: "failed to join room"
+            message: "failed to join room",
+            error: error
         })
     }
 })
@@ -437,7 +441,7 @@ app.get('/rooms', isAuthenticated, async(req, res) => {
             rooms: rooms
         }
     } catch (error) {
-        
+        res.status(401).json('failed to fetch rooms');
     }
 })
 
