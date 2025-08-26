@@ -24,7 +24,7 @@ A real-time collaborative whiteboard app inspired by Excalidraw. Draw, sketch, b
 | Backend    | Node.js, Express, WebSocket (ws)      |
 | Database   | PostgreSQL (Neon/Managed), Prisma     |
 | Monorepo   | Turborepo, pnpm                       |
-| Auth       | NextAuth / Clerk (examples)           |
+| Auth       | NextAuth, default backend credentials |
 | Deployment | Vercel (frontend), AWS EC2 (backend)  |
 
 ---
@@ -99,8 +99,8 @@ NEXTAUTH_URL=http://localhost:3000
 1. **Clone & install**
 
 ```bash
-git clone <YOUR_GIT_REPO_URL>
-cd <repo-root>
+git clone https://github.com/Srv108/Excalidraw.git
+cd Excalidraw
 pnpm install
 ```
 
@@ -164,7 +164,7 @@ app.post('/join-room', isAuthenticated, async (req, res) => {
 * Landing Page: [![landing page](image-2.png)] [![Features](image-3.png)] [![collaborate](image-4.png)] 
 * Login: [![login](image-5.png)]
 * Dashboard: [![Dashboard](image-1.png)]
-* Canvas: [![canvas](image.png)]
+* Canvas: [![white board](image.png)]
 
 ---
 
