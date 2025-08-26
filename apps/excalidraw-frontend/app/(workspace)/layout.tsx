@@ -11,7 +11,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
         redirect("/signin");
     }
 
-    return <WorkspaceLayoutClient jwtToken={session.jwt}>
+    return <WorkspaceLayoutClient >
         <div className="w-full h-screen flex flex-col overflow-hidden">
             <Navbar />
             <div className="flex-1 overflow-hidden">

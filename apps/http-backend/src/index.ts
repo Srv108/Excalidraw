@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import { prisma } from "@repo/db/client";
 import { CreateRoomSchema, CreateUserSchema } from "@repo/common/types";
 import { client } from "@repo/db/client"
 import bcrypt from "bcrypt";
@@ -98,7 +97,6 @@ app.post('/signin', async (req , res ) => {
         else if (error instanceof Error) throw new Error(error.message);
         else throw error;
     }
-
 })
 
 app.post('/room', isAuthenticated, async (req , res ) => {
@@ -232,6 +230,172 @@ app.get('/room/:slug', isAuthenticated, async (req, res) => {
 
     } catch (error) {
         console.log(error);
+    }
+})
+
+/* get room details by room id */
+app.get('/room', isAuthenticated, async (req, res) => {
+    const userId = req.user?.id;
+    const roomId = req.body.roomId;
+    try {
+        
+        /* first check the current user is part of room or not */
+        const roomMember = await client.roomMember.findUnique({
+            where: {
+                roomId_userId: {
+                    roomId: roomId,
+                    userId: userId
+                }
+            },
+            include: {
+                room: true
+            }
+        })
+
+        if(!roomMember){
+            return res.status(403).json({ error: "You are not a member of this room" });
+        }
+
+        return res.json({
+            message: "room fetched successfully",
+            room: roomMember.room
+        })
+
+    } catch (error) {
+        return res.status(401).json({ message: "failed to fetch the room details" });
+    }
+})
+
+/* get room whole details with chat and member details also */
+app.get('/room-details', isAuthenticated, async (req, res) => {
+    const userId = req.user?.id;
+    const roomId = req.body.roomId;
+    try {
+        /* first check the current user is part of room or not */
+        const roomMember = await client.roomMember.findUnique({
+            where: {
+                roomId_userId: {
+                    roomId: roomId,
+                    userId: userId
+                }
+            },
+            include: {
+                room: {
+                    include: {
+                        memberships: {
+                            include: {
+                                user: true
+                            }
+                        },
+                        chats: true
+                    }
+                }
+            }
+        })
+
+        if(!roomMember){
+            return res.status(403).json({ error: "You are not a member of this room" });
+        }
+
+        return res.json({
+            message: "room fetched successfully",
+            room: roomMember.room
+        })
+
+    } catch (error) {
+        return res.status(401).json({ message: "failed to fetch the room details" });
+    }
+})
+
+app.post('/room-invite', isAuthenticated, async(req, res) => {
+    const userId = req.user?.id;
+    const roomId = req.body.roomId;
+    try {
+        const code = uuidv4().replace(/-/g, '').slice(0, 8).toUpperCase();
+        const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        const room = await client.room.findUnique({
+            where: { id: roomId, adminId: userId }
+        })
+
+        if(!room) return res.status(403).json({message: 'you are not the admin of the room...'});
+
+        const roomInvite = await client.roomInvite.create({
+            data: {
+                code: code,
+                roomId: roomId,
+                expiresAt: expiredAt
+            }
+        })
+
+        if(!roomInvite) res.status(402).json({ message: "failed to create join code"});
+
+        res.json({
+            message: "Join code created successfully",
+            joinCode: code
+        })
+    } catch (error) {
+        
+    }
+})
+
+/* join room by room Id */
+app.post('/join-room', isAuthenticated, async(req, res) => {
+    const joinCode: string = req.body.joinCode;
+    const userId = req.user?.id;
+    try {
+        
+        /* find room with  this unique join code */
+        const roomInvite = await client.roomInvite.findUnique({
+            where: {
+                code: joinCode
+            },
+            select: { roomId: true }
+        });
+
+        if(! roomInvite){
+            return res.status(404).json({ error: "Invalid join code" });
+        }
+
+        const newMembership = await client.roomMember.create({
+            data: {
+                roomId: roomInvite.roomId,
+                userId: userId,
+                role: 'MEMBER'
+            }
+        })
+
+        res.json({ message: "Joined room successfully", membership: newMembership });
+
+    } catch (error) {
+        console.log('error in joing room',error);
+        res.json({
+            message: "failed to join room"
+        })
+    }
+})
+
+/* get all room of a user */
+app.get('/rooms', isAuthenticated, async(req, res) => {
+    
+    const userId = req.user?.id;
+    try {
+        
+        const rooms = await client.roomMember.findMany({
+            where: {
+                userId
+            },
+            include: {
+                room: true
+            }
+        })
+
+        return {
+            message: "rooms fetched successfully",
+            rooms: rooms
+        }
+    } catch (error) {
+        
     }
 })
 

@@ -38,10 +38,20 @@ model Room {
   name          String
   slug          String    @unique
   createdAt     DateTime  @default(now())
-  adminId       String
+  adminId       String    
   chats         Chat[]
   user          User      @relation("AdminRooms", fields: [adminId], references: [id])
   memberships   RoomMember[]
+  joinRoom      RoomInvite?
+}
+
+model RoomInvite {
+  id            Int       @id         @default(autoincrement())
+  code          String?   @unique
+  roomId        Int       @unique
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  room          Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
