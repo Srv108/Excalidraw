@@ -43,7 +43,6 @@ export class Draw {
         this.socket = socket;
         this.token = token;
 
-        console.log(token);
         if(!canvas) {
             throw new Error("canvas element is required") ;
         }

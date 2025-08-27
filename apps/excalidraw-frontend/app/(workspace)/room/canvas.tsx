@@ -40,7 +40,6 @@ export default function Canvas({
     const { data: session } = useSession();
 
     useEffect(() => {
-        console.log(session);
         if(session){
             setJwtToken(session.jwt ?? null);
         }

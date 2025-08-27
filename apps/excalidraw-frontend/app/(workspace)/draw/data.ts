@@ -15,7 +15,6 @@ export async function getExistingData(roomId: number, token: string) {
     });
     const messages = response.data.data;
 
-    console.log(messages);
     const shape = messages.map((details: messageDetails) => {
         const data = JSON.parse(details.message);
         return data;

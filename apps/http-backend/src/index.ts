@@ -234,9 +234,12 @@ app.get('/room/:slug', isAuthenticated, async (req, res) => {
 })
 
 /* get room details by room id */
-app.get('/room', isAuthenticated, async (req, res) => {
+app.get(`/room/:roomId`, isAuthenticated, async (req, res) => {
+    if (!req.params?.roomId) {
+        throw new Error("roomId is required");
+    }
+    const roomId = parseInt(req.params.roomId);
     const userId = req.user?.id;
-    const roomId = req.body.roomId;
     try {
         
         /* first check the current user is part of room or not */
@@ -267,7 +270,7 @@ app.get('/room', isAuthenticated, async (req, res) => {
 })
 
 /* get room whole details with chat and member details also */
-app.get('/room-details', isAuthenticated, async (req, res) => {
+app.post('/room-details', isAuthenticated, async (req, res) => {
     const userId = req.user?.id;
     const roomId = req.body.roomId;
     try {
@@ -310,6 +313,30 @@ app.get('/room-details', isAuthenticated, async (req, res) => {
 
     } catch (error) {
         return res.status(401).json({ message: "failed to fetch the room details", error });
+    }
+})
+
+app.get('/admin/:roomId', isAuthenticated, async (req, res) => {
+    if (!req.params?.roomId) {
+        throw new Error("roomId is required");
+    }
+    const roomId = parseInt(req.params.roomId);
+    const userId = req.user?.id;
+    try {
+        /* first current user is admin or not */
+        const room = await client.room.findUnique({
+            where: { id: roomId, adminId: userId }
+        })
+
+        if(!room) throw new Error ('you are not the admin of the room...');
+
+        return res.status(202).json({
+            message: "you are authorised admin of this room",
+            status: true
+        })
+    } catch (error) {
+        console.log(error);
+        res.json({error: 'you are not the admin of this room', status: false});
     }
 })
 
