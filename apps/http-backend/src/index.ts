@@ -335,7 +335,6 @@ app.get('/admin/:roomId', isAuthenticated, async (req, res) => {
             status: true
         })
     } catch (error) {
-        console.log(error);
         res.json({error: 'you are not the admin of this room', status: false});
     }
 })

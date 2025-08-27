@@ -118,20 +118,16 @@ wss.on('connection', function(ws, request) {
                 }
                 
                 /* check user is actually part of this room or not */
-                const validUser = await client.room.findUnique({
+                const validUser = await client.roomMember.findUnique({
                     where: {
-                        id: roomId
-                    },include: {
-                        memberships: {
-                            where: {
-                                userId: userId
-                            }
+                        roomId_userId: {
+                            roomId,
+                            userId
                         }
                     }
-
                 })
 
-                if(!validUser || validUser.memberships.length === 0) {
+                if(!validUser) {
                     ws.send(JSON.stringify({
                         message: "you are not the member of this room"
                     }));
@@ -184,10 +180,15 @@ wss.on('connection', function(ws, request) {
             const roomId = parsedData.roomId;
             const message = parsedData.message;
 
+            /* check current user is part of this room or not */
+            const user = users.find(data => data.ws === ws);
+            const isValidMember = user?.rooms.includes(roomId);
+            if(!isValidMember) return;
+
             try {
                 /* push this message to db */
 
-                const response = await client.chat.create({
+                await client.chat.create({
                     data: {
                         roomId,
                         userId,
@@ -204,7 +205,7 @@ wss.on('connection', function(ws, request) {
                 }));
             }
 
-            /* broadcast this message to all user who joined this room */
+            /* broadcast this message to all user who joined this room only if user is member */
             users.forEach(user => {
                 if(user.rooms.includes(roomId)){
                     user.ws.send(JSON.stringify({
@@ -215,8 +216,6 @@ wss.on('connection', function(ws, request) {
                 }
             })
         }
-
-
     })
 
     ws.on('close', (code, reason) => {
