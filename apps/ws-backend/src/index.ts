@@ -216,6 +216,28 @@ wss.on('connection', function(ws, request) {
                 }
             })
         }
+
+        /* handle shape deletion (eraser) */
+        if(parsedData.type === 'delete_shape'){
+            const roomId = parsedData.roomId;
+            const chatId = parsedData.chatId;
+
+            /* check current user is part of this room or not */
+            const user = users.find(data => data.ws === ws);
+            const isValidMember = user?.rooms.includes(roomId);
+            if(!isValidMember) return;
+
+            /* broadcast the deletion to all users in the room */
+            users.forEach(user => {
+                if(user.rooms.includes(roomId)){
+                    user.ws.send(JSON.stringify({
+                        type: "delete_shape",
+                        chatId: chatId,
+                        roomId
+                    }))
+                }
+            })
+        }
     })
 
     ws.on('close', (code, reason) => {

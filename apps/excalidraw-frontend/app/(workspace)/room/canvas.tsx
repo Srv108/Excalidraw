@@ -5,6 +5,7 @@ import { AnyShape, Draw } from "../draw/draw";
 import { Arrow, Circle, Diamond, Line, Rectangle, Text } from "../draw/shapes";
 import { ActiveShape } from "./RoomCanvas";
 import { useSession } from "next-auth/react";
+import { eraserDataUrl } from "../draw/icons";
 
 export type ShapeConstructor = 
             | (new (x: number, y: number, width: number, height: number, fillColor: string) => AnyShape) 
@@ -49,6 +50,16 @@ export default function Canvas({
     useEffect(() => {
         if(drawRef.current) {
             drawRef.current.selectedShape = activeShape;
+
+        }
+        if(canvasRef.current){
+            const canvas = canvasRef.current;
+            if(activeShape === 'eraser')
+                canvas.style.cursor = `url("${eraserDataUrl}") 8 8, auto`
+            else if(activeShape === 'text')
+                canvas.style.cursor = 'text'
+            else 
+                canvas.style.cursor = 'crosshair'
         }
     }, [activeShape]);
 
@@ -72,6 +83,24 @@ export default function Canvas({
         const handleMessage = (msg: MessageEvent) => {
         try {
             const payload = JSON.parse(msg.data);
+            
+            // Handle shape deletion
+            if (payload.type === 'delete_shape') {
+                const chatId = payload.chatId;
+                
+                // Update local state
+                setExistingShapes((prev) => prev.filter(
+                    (item) => (item as { chatId?: number }).chatId !== chatId
+                ));
+                
+                // Update Draw instance
+                if (drawRef.current) {
+                    drawRef.current.handleShapeDeletion(chatId);
+                }
+                return;
+            }
+            
+            // Handle new shapes
             if (payload.type !== 'chat') return;
 
             const drawingDetails = JSON.parse(payload.message);

@@ -82,6 +82,8 @@ abstract class Shape {
         this.opacity = state.opacity ?? 1;
         this.fillColour = state.fillColor ?? "transparent";
     }
+
+    abstract isPointSatisfied(x: number, y: number): boolean
 }
 
 
@@ -98,9 +100,10 @@ export class Rectangle extends Shape {
     draw(ctx: CanvasRenderingContext2D): void{
         ctx.save();
         ctx.beginPath();
+        ctx.lineWidth = 2;
 
         ctx.strokeStyle = this.strokeColor;
-        ctx.lineWidth = this.strokeWidth;
+        // ctx.lineWidth = this.strokeWidth;
         ctx.lineCap = this.strokeStyle;
         ctx.fillStyle = this.fillColour;
         ctx.globalAlpha = this.opacity;
@@ -119,6 +122,24 @@ export class Rectangle extends Shape {
     setSize (width: number, height: number): void{
         this.width = width;
         this.height = height;
+    }
+
+    isPointSatisfied(x: number, y: number): boolean { /* if point lie on any border line of the rect then return true */
+        const tol = 10;
+        return  (x >= this.startX && x <= this.startX + this.width && Math.abs(y - this.startY) <= tol)
+            ||  (x >= this.startX && x <= this.startX + this.width && Math.abs(y - (this.startY + this.height)) <= tol)
+            ||  (y >= this.startY && y <= this.startY + this.height && Math.abs(x - this.startX) <= tol)
+            ||  (y >= this.startY && y <= this.startY + this.height && Math.abs(x - (this.startX + this.width)) <= tol)
+    }
+
+    isPointOnBorder(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        ctx.save();
+        ctx.beginPath();
+        ctx.lineWidth = 5;  // Larger for easier eraser hit detection
+        ctx.rect(this.startX, this.startY, this.width, this.height);
+        const isHit = ctx.isPointInStroke(x, y);
+        ctx.restore();
+        return isHit;
     }
 }
 
@@ -206,6 +227,19 @@ export class Circle extends Shape {
         this.centerY = (2*this.startY + height) / 2;
     }
 
+    /* point lie on the circumference of the circle ? */
+    isPointSatisfied(x: number, y: number): boolean {
+
+        /* now calculate the distance btw point and radius of the circle */
+        const distance = Math.sqrt(Math.pow(x - this.centerX, 2) + Math.pow(y - this.centerY, 2));
+
+        return Math.abs(distance - this.radius) <= 3;
+    }
+
+    isPointOnBorder(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        return true;
+    }
+
 }
 
 // export class Oval extends Shape {
@@ -246,8 +280,13 @@ export class Line extends Shape{
         ctx.stroke();
     }
 
-    /* point lie on the line  */
+    /* point lie inside the line */
     isPointInside(x: number, y: number): boolean {
+        return this.isPointSatisfied(x, y);
+    }
+
+    /* point lie on the line  */
+    isPointSatisfied(x: number, y: number): boolean {
 
         /* calculate distance and verify is it on the line or not 
 
@@ -265,6 +304,17 @@ export class Line extends Shape{
         const dis = Math.sqrt((this.width * this.width) + (this.height * this.height));
 
         return dis === dis1 + dis2;
+    }
+
+    isPointOnBorder(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        ctx.save();
+        ctx.beginPath();
+        ctx.lineWidth = 5;  // Larger for hit
+        ctx.moveTo(this.startX, this.startY);
+        ctx.lineTo(this.startX + this.width, this.startY + this.height);
+        const isHit = ctx.isPointInStroke(x, y);
+        ctx.restore();
+        return isHit;
     }
 
     setSize (width: number, height: number) {
@@ -312,6 +362,12 @@ export class Diamond extends Shape {
 
     setSize(width: number, height: number) {
 
+    }
+    isPointSatisfied(x: number, y: number): boolean {
+        return false;
+    }
+    isPointOnBorder(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        return true;
     }
 }
 
@@ -399,6 +455,13 @@ export class Arrow extends Shape {
         this.width = width;
         this.height = height;
     }
+
+    isPointSatisfied(x: number, y: number): boolean{
+        return this.isPointInside(x, y);
+    }
+    isPointOnBorder(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        return true;
+    }
 }
 
 export class Text extends Shape {
@@ -425,9 +488,9 @@ export class Text extends Shape {
         ctx.strokeStyle = this.strokeColor || "black";   
         ctx.lineWidth = this.strokeWidth || 2;          
         ctx.lineCap = "round";                           
-        ctx.fillStyle = "red";                           
+        ctx.fillStyle = this.fillColour || "black";  // Use fillColour property instead of hardcoded "red"
         ctx.globalAlpha = this.opacity ?? 1.0;           
-        ctx.font = `${this.fontSize || 20}px Arial`;     
+        ctx.font = `${this.fontSize || 20}px ${this.fontFamily || "Arial"}`;     
 
         ctx.fillText(this.text, this.startX, this.startY);
         ctx.restore();
@@ -436,6 +499,10 @@ export class Text extends Shape {
 
     /* implement the logic */
     isPointInside(x: number, y: number): boolean {
+        return false;
+    }
+
+    isPointSatisfied(x: number, y: number): boolean {
         return false;
     }
 
@@ -449,5 +516,8 @@ export class Text extends Shape {
 
     setFontFamily(family: string): void {
         this.fontFamily = family;
+    }
+    isPointOnBorder(x: number, y: number, ctx: CanvasRenderingContext2D): boolean {
+        return true;
     }
 }

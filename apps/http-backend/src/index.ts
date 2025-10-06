@@ -471,6 +471,60 @@ app.get('/rooms', isAuthenticated, async(req, res) => {
     }
 })
 
+/* delete a chat message (shape) */
+app.delete('/chat/:chatId', isAuthenticated, async(req, res) => {
+    const userId = req.user?.id;
+    
+    if (!req.params.chatId) {
+        return res.status(400).json({ error: "chatId is required" });
+    }
+    
+    const chatId = parseInt(req.params.chatId);
+
+    try {
+        /* first check if the chat exists and get its roomId */
+        const chat = await client.chat.findUnique({
+            where: { id: chatId },
+            include: { room: true }
+        });
+
+        if (!chat) {
+            return res.status(404).json({ error: "Chat not found" });
+        }
+
+        /* check if user is a member of the room */
+        const isMember = await client.roomMember.findUnique({
+            where: {
+                roomId_userId: {
+                    roomId: chat.roomId,
+                    userId: userId
+                }
+            }
+        });
+
+        if (!isMember) {
+            return res.status(403).json({ error: "Unauthorized to delete this chat" });
+        }
+
+        /* delete the chat */
+        await client.chat.delete({
+            where: { id: chatId }
+        });
+
+        res.status(200).json({
+            message: "Chat deleted successfully",
+            chatId: chatId
+        });
+
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+        res.status(500).json({
+            error: "Failed to delete chat",
+            details: error
+        });
+    }
+})
+
 app.listen(3002, () => {
     console.log(`app listening on 3002`);
 });
