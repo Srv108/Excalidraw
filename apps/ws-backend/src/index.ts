@@ -238,6 +238,28 @@ wss.on('connection', function(ws, request) {
                 }
             })
         }
+
+        /* handle page change */
+        if(parsedData.type === 'page_change'){
+            const roomId = parsedData.roomId;
+            const page = parsedData.page;
+
+            /* check current user is part of this room or not */
+            const user = users.find(data => data.ws === ws);
+            const isValidMember = user?.rooms.includes(roomId);
+            if(!isValidMember) return;
+
+            /* broadcast the page change to all users in the room */
+            users.forEach(user => {
+                if(user.rooms.includes(roomId)){
+                    user.ws.send(JSON.stringify({
+                        type: "page_change",
+                        page: page,
+                        roomId
+                    }))
+                }
+            })
+        }
     })
 
     ws.on('close', (code, reason) => {

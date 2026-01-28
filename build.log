@@ -1,0 +1,71 @@
+
+> Excalidraw@ build /Users/saurabhkumar/Dev/Developer/Excalidraw
+> turbo run build
+
+turbo 2.5.5
+
+• Packages in scope: @repo/backend-common, @repo/common, @repo/db, @repo/eslint-config, @repo/typescript-config, @repo/ui, excalidraw-frontend, http-backend, ws-backend
+• Running build in 9 packages
+• Remote caching disabled
+excalidraw-frontend:build: cache miss, executing c44b43177746077c
+@repo/db:build: cache hit, replaying logs bbb4f6f73f5ead08
+@repo/db:build: 
+@repo/db:build: 
+@repo/db:build: > @repo/db@1.0.0 build /Users/saurabhkumar/Dev/Developer/Excalidraw/packages/db
+@repo/db:build: > tsc -p tsconfig.json
+@repo/db:build: 
+ws-backend:build: cache hit, replaying logs 2d86ce750badc532
+ws-backend:build: 
+ws-backend:build: 
+ws-backend:build: > ws-backend@1.0.0 build /Users/saurabhkumar/Dev/Developer/Excalidraw/apps/ws-backend
+ws-backend:build: > tsc -b
+ws-backend:build: 
+http-backend:build: cache hit, replaying logs 5e34537b940ce169
+http-backend:build: 
+http-backend:build: 
+http-backend:build: > http-backend@1.0.0 build /Users/saurabhkumar/Dev/Developer/Excalidraw/apps/http-backend
+http-backend:build: > tsc -b
+http-backend:build: 
+excalidraw-frontend:build: 
+excalidraw-frontend:build: > excalidraw-frontend@0.1.0 build /Users/saurabhkumar/Dev/Developer/Excalidraw/apps/excalidraw-frontend
+excalidraw-frontend:build: > next build --turbopack
+excalidraw-frontend:build: 
+excalidraw-frontend:build:  ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+excalidraw-frontend:build:  We detected multiple lockfiles and selected the directory of /Users/saurabhkumar/Dev/Developer/Excalidraw/pnpm-lock.yaml as the root directory.
+excalidraw-frontend:build:  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+excalidraw-frontend:build:    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+excalidraw-frontend:build:  Detected additional lockfiles: 
+excalidraw-frontend:build:    * /Users/saurabhkumar/Dev/Developer/Excalidraw/apps/excalidraw-frontend/package-lock.json
+excalidraw-frontend:build: 
+excalidraw-frontend:build:    ▲ Next.js 15.5.0 (Turbopack)
+excalidraw-frontend:build:    - Environments: .env
+excalidraw-frontend:build: 
+excalidraw-frontend:build:    Creating an optimized production build ...
+excalidraw-frontend:build:  ✓ Finished writing to disk in 86ms
+excalidraw-frontend:build:  ✓ Compiled successfully in 3.2s
+excalidraw-frontend:build:    Skipping linting
+excalidraw-frontend:build:    Checking validity of types ...
+excalidraw-frontend:build: Failed to compile.
+excalidraw-frontend:build: 
+excalidraw-frontend:build: ./app/(workspace)/draw/draw.ts:257:13
+excalidraw-frontend:build: Type error: Unused '@ts-expect-error' directive.
+excalidraw-frontend:build: 
+excalidraw-frontend:build: [0m [90m 255 |[39m             }
+excalidraw-frontend:build:  [90m 256 |[39m
+excalidraw-frontend:build: [31m[1m>[22m[39m[90m 257 |[39m             [90m// @ts-expect-error - Shape reconstruction from plain object[39m
+excalidraw-frontend:build:  [90m     |[39m             [31m[1m^[22m[39m
+excalidraw-frontend:build:  [90m 258 |[39m             [36mlet[39m shape[33m:[39m [33mAnyShape[39m [33m|[39m [33mText[39m[33m;[39m
+excalidraw-frontend:build:  [90m 259 |[39m
+excalidraw-frontend:build:  [90m 260 |[39m             [36mif[39m(data[33m.[39mtype [33m===[39m [32m'text'[39m){[0m
+excalidraw-frontend:build: Next.js build worker exited with code: 1 and signal: null
+excalidraw-frontend:build:  ELIFECYCLE  Command failed with exit code 1.
+excalidraw-frontend:build: ERROR: command finished with error: command (/Users/saurabhkumar/Dev/Developer/Excalidraw/apps/excalidraw-frontend) /Users/saurabhkumar/.nvm/versions/node/v22.13.1/bin/pnpm run build exited (1)
+excalidraw-frontend#build: command (/Users/saurabhkumar/Dev/Developer/Excalidraw/apps/excalidraw-frontend) /Users/saurabhkumar/.nvm/versions/node/v22.13.1/bin/pnpm run build exited (1)
+
+ Tasks:    3 successful, 4 total
+Cached:    3 cached, 4 total
+  Time:    6.146s 
+Failed:    excalidraw-frontend#build
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Command failed with exit code 1.

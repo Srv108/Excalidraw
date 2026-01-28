@@ -11,27 +11,64 @@ export default function SignUpPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password !== confirm) return alert("Passwords do not match");
+        setError("");
+        
+        if (password !== confirm) {
+            setError("Passwords do not match");
+            return;
+        }
 
-        console.log(email, password);
-        // Call your signup API
-        const res = await axios.post(`${HTTP_BACKEND}/signup`,{
-            email: email,
-            password: password,
-        });
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters long");
+            return;
+        }
 
-        console.log('coming response', res);
-        if(res){
-            await signIn("credentials", {
-                email,
-                password,
-                callbackUrl: "/dashboard",
+        setLoading(true);
+
+        try {
+            console.log('Attempting signup with:', email);
+            
+            // Call your signup API
+            const res = await axios.post(`${HTTP_BACKEND}/signup`, {
+                email: email,
+                password: password,
             });
-        } else {
-            alert("Signup failed");
+
+            console.log('Signup response:', res);
+
+            if (res.status === 201 || res.status === 200) {
+                // Signup successful, now sign in
+                await signIn("credentials", {
+                    email,
+                    password,
+                    callbackUrl: "/dashboard",
+                });
+            }
+        } catch (err) {
+            console.error('Signup error:', err);
+            
+            if (axios.isAxiosError(err)) {
+                if (err.response) {
+                    // Server responded with error
+                    const errorMessage = err.response.data?.message || err.response.data?.error || "Signup failed";
+                    setError(errorMessage);
+                } else if (err.request) {
+                    // Request made but no response
+                    setError("No response from server. Please check your connection.");
+                } else {
+                    // Something else happened
+                    setError("An unexpected error occurred. Please try again.");
+                }
+            } else {
+                setError("An unexpected error occurred. Please try again.");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -49,6 +86,13 @@ export default function SignUpPage() {
             <p className="text-center text-muted-foreground mb-6 text-base md:text-lg">
             Join us today!
             </p>
+
+            {/* Error Message */}
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                    <span className="block sm:inline">{error}</span>
+                </div>
+            )}
 
             {/* Credentials Signup */}
             <form className="space-y-5" onSubmit={handleSignup}>
@@ -102,12 +146,14 @@ export default function SignUpPage() {
 
             <motion.button
                 type="submit"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                disabled={loading}
+                whileHover={{ scale: loading ? 1 : 1.03 }}
+                whileTap={{ scale: loading ? 1 : 0.97 }}
                 className="w-full rounded-md px-4 py-3 font-medium glass
-                        bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:opacity-90 transition"
+                        bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:opacity-90 transition
+                        disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                Sign Up
+                {loading ? "Creating Account..." : "Sign Up"}
             </motion.button>
             </form>
 

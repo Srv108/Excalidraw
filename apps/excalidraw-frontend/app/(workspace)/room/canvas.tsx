@@ -6,6 +6,7 @@ import { Arrow, Circle, Diamond, Line, Rectangle, Text } from "../draw/shapes";
 import { ActiveShape } from "./RoomCanvas";
 import { useSession } from "next-auth/react";
 import { eraserDataUrl } from "../draw/icons";
+import PageNavigation from "./PageNavigation";
 
 export type ShapeConstructor = 
             | (new (x: number, y: number, width: number, height: number, fillColor: string) => AnyShape) 
@@ -37,6 +38,7 @@ export default function Canvas({
         { type: string; shape: AnyShape | Text }[]
     >([]);
     const [ jwtToken, setJwtToken ] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
 
     const { data: session } = useSession();
 
@@ -69,12 +71,20 @@ export default function Canvas({
 
         const draw = new Draw(canvas, activeShape, existingShapes, socket, roomId, jwtToken);
         drawRef.current = draw;
+        draw.currentPage = currentPage;
+        
+        // Set page change callback
+        draw.onPageChange = (page: number) => {
+            setCurrentPage(page);
+        };
+        
         draw.init();
 
         return () => {
             draw.destroyMouseHandler();
         };
-    }, [roomId, socket, jwtToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roomId, socket, jwtToken, currentPage]);
 
     // Handle incoming WebSocket messages
     useEffect(() => {
@@ -83,6 +93,15 @@ export default function Canvas({
         const handleMessage = (msg: MessageEvent) => {
         try {
             const payload = JSON.parse(msg.data);
+            
+            // Handle page change from other users
+            if (payload.type === 'page_change') {
+                const newPage = payload.page;
+                if (drawRef.current && newPage !== drawRef.current.currentPage) {
+                    drawRef.current.goToPage(newPage);
+                }
+                return;
+            }
             
             // Handle shape deletion
             if (payload.type === 'delete_shape') {
@@ -104,7 +123,12 @@ export default function Canvas({
             if (payload.type !== 'chat') return;
 
             const drawingDetails = JSON.parse(payload.message);
-            const { type, shape } = drawingDetails;
+            const { type, shape, page } = drawingDetails;
+            
+            // Only show shapes for current page
+            if (drawRef.current && page !== drawRef.current.currentPage) {
+                return;
+            }
 
             const ShapeClass = ShapeRegistry[type];
             if (!ShapeClass) {
@@ -176,9 +200,26 @@ export default function Canvas({
         };
     }, [socket]);
 
+    const handleNextPage = async () => {
+        if (drawRef.current) {
+            await drawRef.current.nextPage();
+        }
+    };
+
+    const handlePreviousPage = async () => {
+        if (drawRef.current) {
+            await drawRef.current.previousPage();
+        }
+    };
+
     return (
         <div>
             <canvas ref={canvasRef} className="w-screen h-screen bg-white text-2xl font-bold" />
+            <PageNavigation 
+                currentPage={currentPage} 
+                onNext={handleNextPage} 
+                onPrevious={handlePreviousPage} 
+            />
         </div>
     );
 }

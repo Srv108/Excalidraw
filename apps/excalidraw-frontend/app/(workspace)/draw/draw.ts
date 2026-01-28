@@ -35,6 +35,10 @@ export class Draw {
     private token: string | null;
     private textInput: HTMLInputElement | null = null;
     private isEditingText: boolean = false;
+    
+    // Pagination
+    public currentPage: number = 1;
+    public onPageChange?: (page: number) => void;
 
     socket: WebSocket;
 
@@ -77,7 +81,7 @@ export class Draw {
             console.warn("Room ID is null and token , cannot fetch existing data");
             return;
         }
-        this.ExistingData = await getExistingData(this.roomId!, this.token);
+        this.ExistingData = await getExistingData(this.roomId!, this.token, this.currentPage);
         this.clearCanvas();
         this.redrawCanvas();
     }
@@ -137,13 +141,14 @@ export class Draw {
         });
 
         /* 
-            send shape data to the socket 
+            send shape data to the socket with page number
         */
         this.socket.send(JSON.stringify({
             type: 'chat',
             message: JSON.stringify({
                 type: this.selectedShape,
-                shape
+                shape,
+                page: this.currentPage
             }),
             roomId: this.roomId
         }))
@@ -249,14 +254,13 @@ export class Draw {
                 return;
             }
 
-            // @ts-ignore
             let shape: AnyShape | Text;
 
             if(data.type === 'text'){
-                // @ts-ignore
+                // @ts-expect-error - Text shape reconstruction
                 shape = new (ShapeClass as typeof Text)(data.shape.startX, data.shape.startY, data.shape.text, data.shape.fontSize, data.shape.fillColor);
             } else 
-                // @ts-ignore
+                // @ts-expect-error - Generic shape reconstruction
                 shape = new ShapeClass(data.shape.startX, data.shape.startY, data.shape.width, data.shape.height);
 
             // Replace the plain object with the class instance
@@ -429,12 +433,13 @@ export class Draw {
             shape: textShape
         });
 
-        // Send to socket
+        // Send to socket with page number
         this.socket.send(JSON.stringify({
             type: 'chat',
             message: JSON.stringify({
                 type: 'text',
-                shape: textShape
+                shape: textShape,
+                page: this.currentPage
             }),
             roomId: this.roomId
         }));
@@ -449,6 +454,76 @@ export class Draw {
             this.textInput.remove();
             this.textInput = null;
             this.isEditingText = false;
+        }
+    }
+
+    /* Navigate to next page */
+    public async nextPage(): Promise<void> {
+        // Save current page data before moving
+        this.currentPage++;
+        
+        // Clear canvas and load new page data
+        this.ExistingData = [];
+        this.clearCanvas();
+        
+        // Fetch data for new page
+        await this.init();
+        
+        // Notify parent component
+        if (this.onPageChange) {
+            this.onPageChange(this.currentPage);
+        }
+        
+        // Broadcast page change to other users
+        this.socket.send(JSON.stringify({
+            type: 'page_change',
+            page: this.currentPage,
+            roomId: this.roomId
+        }));
+    }
+
+    /* Navigate to previous page */
+    public async previousPage(): Promise<void> {
+        if (this.currentPage <= 1) return;
+        
+        this.currentPage--;
+        
+        // Clear canvas and load previous page data
+        this.ExistingData = [];
+        this.clearCanvas();
+        
+        // Fetch data for previous page
+        await this.init();
+        
+        // Notify parent component
+        if (this.onPageChange) {
+            this.onPageChange(this.currentPage);
+        }
+        
+        // Broadcast page change to other users
+        this.socket.send(JSON.stringify({
+            type: 'page_change',
+            page: this.currentPage,
+            roomId: this.roomId
+        }));
+    }
+
+    /* Go to specific page */
+    public async goToPage(page: number): Promise<void> {
+        if (page < 1) return;
+        
+        this.currentPage = page;
+        
+        // Clear canvas and load page data
+        this.ExistingData = [];
+        this.clearCanvas();
+        
+        // Fetch data for the page
+        await this.init();
+        
+        // Notify parent component
+        if (this.onPageChange) {
+            this.onPageChange(this.currentPage);
         }
     }
 

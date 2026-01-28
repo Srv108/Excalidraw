@@ -20,8 +20,9 @@ app.post('/signup', async(req , res ) => {
     const parsedData = CreateUserSchema.safeParse(req.body);
     if(!parsedData.success){
         console.log(parsedData.error);
-        return res.json({
-            message: "Incorrect inputs"
+        return res.status(400).json({
+            message: "Incorrect inputs",
+            error: parsedData.error
         })
     }
 
@@ -37,14 +38,39 @@ app.post('/signup', async(req , res ) => {
             }
         })
 
-        res.json({
-            message: "User created succefully",
+        res.status(201).json({
+            message: "User created successfully",
             details: user
         })
     } catch (error) {
-        if(isPrismaError(error)) throw new PrismaErrorHandler(error);
-        else if (error instanceof Error) throw new Error(error.message);
-        else throw error;
+        console.error('Signup error:', error);
+        
+        // Handle Prisma unique constraint violation (duplicate email)
+        if(isPrismaError(error)) {
+            const prismaError = error as any;
+            if (prismaError.code === 'P2002') {
+                return res.status(409).json({
+                    message: "Email already exists",
+                    error: "A user with this email already exists"
+                });
+            }
+            return res.status(500).json({
+                message: "Database error",
+                error: prismaError.message
+            });
+        }
+        
+        if (error instanceof Error) {
+            return res.status(500).json({
+                message: "Signup failed",
+                error: error.message
+            });
+        }
+        
+        return res.status(500).json({
+            message: "Unknown error occurred",
+            error: String(error)
+        });
     }
 
 })
