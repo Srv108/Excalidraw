@@ -17,8 +17,8 @@ RUN cd packages/db && npx prisma generate
 # Build all packages and apps
 RUN pnpm run build
 
-# Expose port for HTTP backend
-EXPOSE 3002
+# Expose port for WebSocket backend
+EXPOSE 8080
 
-# Start HTTP backend by default
-CMD ["node", "apps/http-backend/dist/index.js"]
+# Start WebSocket backend
+CMD ["node", "apps/ws-backend/dist/index.js"]
