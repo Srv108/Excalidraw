@@ -10,5 +10,4 @@ pnpm-debug.log
 npm-debug.log
 yarn-error.log
 .DS_Store
-certs
 build.log
