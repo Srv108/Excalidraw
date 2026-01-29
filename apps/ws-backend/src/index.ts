@@ -7,10 +7,20 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { client } from "@repo/db/client"
 
-const server = https.createServer({
-    key: fs.readFileSync(path.join(__dirname, "../../../certs/key.pem")),
-    cert: fs.readFileSync(path.join(__dirname, "../../../certs/cert.pem"))
-});
+// Try to load SSL certs; fall back to self-signed if not available
+let server: any;
+const keyPath = path.join(__dirname, "../../../certs/key.pem");
+const certPath = path.join(__dirname, "../../../certs/cert.pem");
+
+try {
+    server = https.createServer({
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath)
+    });
+} catch (err) {
+    console.warn("SSL certs not found, creating HTTP-only server. For WSS, provide valid certs at certs/key.pem and certs/cert.pem");
+    server = http.createServer();
+}
 
 const wss = new WebSocketServer({ server });
 interface User {
@@ -283,4 +293,6 @@ const healthServer = http.createServer((req, res) => {
 
 healthServer.listen(8081, () => console.log("Health check server running on http://0.0.0.0:8081"));
 
-server.listen(8080, () => console.log("WSS running on https://0.0.0.0:8080"));
+const isHttps = server instanceof https.Server;
+const protocol = isHttps ? "wss" : "ws";
+server.listen(8080, () => console.log(`${protocol.toUpperCase()} server running on ${protocol}://0.0.0.0:8080`));
