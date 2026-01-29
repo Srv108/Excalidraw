@@ -1,26 +1,14 @@
 import fs from "fs";
 import path from "path";
-import https from "https";
 import http from "http";
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { client } from "@repo/db/client"
 
-// Try to load SSL certs; fall back to self-signed if not available
-let server: any;
-const keyPath = path.join(__dirname, "../../../certs/key.pem");
-const certPath = path.join(__dirname, "../../../certs/cert.pem");
-
-try {
-    server = https.createServer({
-        key: fs.readFileSync(keyPath),
-        cert: fs.readFileSync(certPath)
-    });
-} catch (err) {
-    console.warn("SSL certs not found, creating HTTP-only server. For WSS, provide valid certs at certs/key.pem and certs/cert.pem");
-    server = http.createServer();
-}
+// Use plain HTTP for WebSocket (no SSL)
+// Render's proxy handles edge encryption, and auth is via JWT token
+const server = http.createServer();
 
 const wss = new WebSocketServer({ server });
 interface User {
@@ -293,7 +281,5 @@ const healthServer = http.createServer((req, res) => {
 
 healthServer.listen(8081, () => console.log("Health check server running on http://0.0.0.0:8081"));
 
-const isHttps = server instanceof https.Server;
-const protocol = isHttps ? "wss" : "ws";
-const port = process.env.WS_PORT || "8090";
-server.listen(port, "localhost", () => console.log(`${protocol.toUpperCase()} server running on ${protocol}://localhost:${port} (proxied by Caddy on port 8080)`));
+const port = process.env.WS_PORT || "8080";
+server.listen(port, "0.0.0.0", () => console.log(`WS server running on ws://0.0.0.0:${port} (secured via JWT token)`))
