@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import https from "https";
+import http from "http";
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
@@ -269,4 +270,17 @@ wss.on('connection', function(ws, request) {
     })
 })
 
-server.listen(8080, () => console.log("WSS running on https://localhost:8080"));
+// HTTP health check server on port 8081 for Render/load balancer detection
+const healthServer = http.createServer((req, res) => {
+    if (req.url === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok' }));
+    } else {
+        res.writeHead(404);
+        res.end();
+    }
+});
+
+healthServer.listen(8081, () => console.log("Health check server running on http://0.0.0.0:8081"));
+
+server.listen(8080, () => console.log("WSS running on https://0.0.0.0:8080"));
