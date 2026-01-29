@@ -1,0 +1,9 @@
+{$WS_DOMAIN}:8080 {
+  encode gzip
+  reverse_proxy localhost:8090 {
+    header_upstream Host {host}
+    header_upstream X-Real-IP {remote_host}
+    header_upstream X-Forwarded-For {remote_host}
+    header_upstream X-Forwarded-Proto https
+  }
+}

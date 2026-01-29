@@ -295,4 +295,5 @@ healthServer.listen(8081, () => console.log("Health check server running on http
 
 const isHttps = server instanceof https.Server;
 const protocol = isHttps ? "wss" : "ws";
-server.listen(8080, () => console.log(`${protocol.toUpperCase()} server running on ${protocol}://0.0.0.0:8080`));
+const port = process.env.WS_PORT || "8090";
+server.listen(port, "localhost", () => console.log(`${protocol.toUpperCase()} server running on ${protocol}://localhost:${port} (proxied by Caddy on port 8080)`));
