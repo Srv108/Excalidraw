@@ -1,14 +1,16 @@
 import fs from "fs";
 import path from "path";
+import https from "https";
 import http from "http";
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { client } from "@repo/db/client"
 
-// Use plain HTTP for WebSocket (no SSL)
-// Render's proxy handles edge encryption, and auth is via JWT token
-const server = http.createServer();
+const server = https.createServer({
+    key: fs.readFileSync(path.join(__dirname, "../../../certs/key.pem")),
+    cert: fs.readFileSync(path.join(__dirname, "../../../certs/cert.pem"))
+});
 
 const wss = new WebSocketServer({ server });
 interface User {
@@ -282,4 +284,4 @@ const healthServer = http.createServer((req, res) => {
 healthServer.listen(8081, () => console.log("Health check server running on http://0.0.0.0:8081"));
 
 const port = process.env.WS_PORT || "8080";
-server.listen(port, "0.0.0.0", () => console.log(`WS server running on ws://0.0.0.0:${port} (secured via JWT token)`))
+server.listen(port, "0.0.0.0", () => console.log(`WSS server running on wss://0.0.0.0:${port} (secured with certificate + JWT token)`))
